@@ -8,7 +8,12 @@ const Z = require('../src/renderer/js/analyzer.js');
 const ACME = process.env.ACME || 'acme';
 const EX = path.join(__dirname, '..', 'examples');
 let failed = 0, passed = 0;
-const ok = (cond, name, detail) => { if (cond) { passed++; console.log('  ok   ' + name); } else { failed++; console.log('  FAIL ' + name + (detail ? '\n       ' + detail : '')); } };
+const ok = (cond, name, detail) => {
+  if (cond) { passed++; console.log('  ok   ' + name); return; }
+  failed++;
+  console.log('  FAIL ' + name + (detail ? '\n       ' + detail : ''));
+  if (process.env.GITHUB_ACTIONS) console.log(`::error title=Test failed::${name}: ${String(detail || '').replace(/[\r\n]+/g, ' ').slice(0, 900)}`);
+};
 
 function model(file, text) {
   const dir = path.dirname(file);
@@ -25,6 +30,7 @@ function merge(list) {
 }
 const haveAcme = (() => { try { return cp.spawnSync(ACME, ['-V']).status === 0; } catch (e) { return false; } })();
 console.log(haveAcme ? 'ACME: ' + ACME : 'ACME not found - comparing with ACME is skipped');
+if (haveAcme && process.env.GITHUB_ACTIONS) console.log('::notice title=ACME version::' + (cp.spawnSync(ACME, ['-V'], { encoding: 'utf8' }).stdout || '').split('\n')[0]);
 
 console.log('\n# examples');
 const files = fs.readdirSync(EX).filter(f => f.endsWith('.asm')).map(f => path.join(EX, f)).concat([path.join(EX, 'music', 'demo_tune_src.asm')]);

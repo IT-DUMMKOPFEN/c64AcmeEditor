@@ -89,6 +89,15 @@ jobs:
         shell: bash
         run: bash scripts/fetch-vice.sh ${{ matrix.target }} vendor/tools || echo "VICE could not be bundled"
 
+      - name: Report bundled tools
+        shell: bash
+        run: |
+          for t in acme exomizer sidreloc; do
+            if ls vendor/tools/$t* >/dev/null 2>&1; then echo "::notice title=${{ matrix.target }} tool::$t built"; else echo "::warning title=${{ matrix.target }} tool::$t missing"; fi
+          done
+          V=$(find vendor/tools -maxdepth 7 \( -name x64sc -o -name x64sc.exe \) 2>/dev/null | head -1)
+          if [ -n "$V" ]; then echo "::notice title=${{ matrix.target }} VICE::$V"; else echo "::warning title=${{ matrix.target }} VICE::not bundled"; fi
+
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
 
