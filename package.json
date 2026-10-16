@@ -1,0 +1,72 @@
+{
+  "name": "c64-acme-editor",
+  "productName": "C64 ACME EDITOR",
+  "version": "0.1.0-beta",
+  "description": "Editor for C64 assembler with ACME, live checking, memory map, Exomizer, sidreloc and VICE.",
+  "author": "IT-Dummköpfe",
+  "license": "MIT",
+  "homepage": "https://github.com/IT-DUMMKOPFEN/c64AcmeEditor",
+  "repository": { "type": "git", "url": "https://github.com/IT-DUMMKOPFEN/c64AcmeEditor.git" },
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/run-tests.js",
+    "fetch-tools": "bash scripts/fetch-tools.sh",
+    "dist": "electron-builder --publish never",
+    "dist:win": "electron-builder --win --x64 --publish never",
+    "dist:mac": "electron-builder --mac --arm64 --publish never",
+    "dist:linux": "electron-builder --linux --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "44.8.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "de.it-dummkoepfe.c64acmeeditor",
+    "productName": "C64 ACME EDITOR",
+    "artifactName": "C64-ACME-EDITOR-0.1b-${os}-${arch}.${ext}",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "afterPack": "build/afterPack.js",
+    "files": [
+      "src/**/*",
+      "build/icon.png",
+      "package.json",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      { "from": "examples", "to": "examples" },
+      { "from": "vendor/tools", "to": "tools" },
+      { "from": "LICENSE", "to": "LICENSE.txt" },
+      { "from": "THIRD_PARTY_NOTICES.md", "to": "THIRD_PARTY_NOTICES.md" }
+    ],
+    "fileAssociations": [
+      { "ext": ["asm", "acme", "a"], "name": "ACME source", "role": "Editor" }
+    ],
+    "win": {
+      "target": [ { "target": "nsis", "arch": ["x64"] }, { "target": "zip", "arch": ["x64"] } ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "C64-ACME-EDITOR-0.1b-Windows-Setup.${ext}"
+    },
+    "mac": {
+      "target": [ { "target": "dmg", "arch": ["arm64"] }, { "target": "zip", "arch": ["arm64"] } ],
+      "category": "public.app-category.developer-tools",
+      "icon": "build/icon.png",
+      "identity": null,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "dmg": { "artifactName": "C64-ACME-EDITOR-0.1b-macOS-AppleSilicon.${ext}" },
+    "linux": {
+      "target": [ { "target": "AppImage", "arch": ["x64"] }, { "target": "deb", "arch": ["x64"] } ],
+      "category": "Development",
+      "icon": "build/icon.png",
+      "maintainer": "IT-Dummköpfe <IT-DUMMKOPFEN@users.noreply.github.com>",
+      "synopsis": "C64 assembler editor (ACME, VICE, Exomizer, sidreloc)"
+    },
+    "deb": { "recommends": ["vice"] }
+  }
+}

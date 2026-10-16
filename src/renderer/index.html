@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'">
+  <title>C64 ACME EDITOR</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body class="theme-night">
+  <div id="app">
+    <!-- ======================================================== toolbar -->
+    <header id="toolbar">
+      <div class="brand" title="C64 ACME EDITOR">
+        <span class="stripes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="brand-name">C64 ACME EDITOR</span>
+        <span class="brand-ver" id="brandVersion">0.1b</span>
+      </div>
+      <nav class="tb-group">
+        <button data-cmd="file:new" title="New file (Ctrl+N)">New</button>
+        <button data-cmd="file:open" title="Open a source file (Ctrl+O)">Open</button>
+        <button data-cmd="file:save" title="Save (Ctrl+S)">Save</button>
+      </nav>
+      <nav class="tb-group">
+        <button data-cmd="build:check" title="Check the source with ACME (F7)">Check</button>
+        <button data-cmd="build:analyze" title="Sanity check: does the program make sense? (Shift+F7)">Sanity check</button>
+        <button data-cmd="build:savePrg" title="Assemble and save as .prg, optionally packed with Exomizer (Ctrl+Shift+P)">Save PRG</button>
+        <button data-cmd="build:run" class="primary" title="Build and run in VICE (F5)"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1 L9 5 L2 9 Z"/></svg>Run in VICE</button>
+      </nav>
+      <nav class="tb-group">
+        <button data-cmd="tools:converter" title="Number converter HEX / DEC / BIN (Ctrl+K)">$ % #</button>
+        <button data-cmd="tools:sidreloc" title="Relocate a SID tune with sidreloc">SID relocate</button>
+        <button data-cmd="examples:gallery" title="Example programs (Ctrl+Shift+E)">Examples</button>
+        <button data-cmd="help:open" title="Help center (F1)">Help</button>
+      </nav>
+      <div class="tb-spacer"></div>
+      <button id="themeToggle" data-cmd="view:theme" class="theme-toggle" title="Day / night mode (Ctrl+T)">
+        <span class="sun">Day</span><span class="moon">Night</span>
+      </button>
+    </header>
+
+    <!-- =========================================================== tabs -->
+    <div id="tabs" role="tablist"></div>
+
+    <!-- ======================================================== editor -->
+    <main id="center">
+      <div id="editorWrap">
+        <div id="editor"></div>
+        <div id="welcome" class="hidden"></div>
+      </div>
+      <aside id="converter" class="side-panel hidden" aria-label="Number converter"></aside>
+    </main>
+
+    <!-- ===================== hint line: what is wrong + how to fix it -->
+    <div id="hintBar" class="hint-bar"><span class="hint-icon"></span><span class="hint-text">Ready.</span><span class="hint-fix"></span></div>
+
+    <!-- =================================================== bottom panel -->
+    <section id="bottom">
+      <div id="bottomResize" class="resize-handle" title="Drag to resize"></div>
+      <div class="bottom-tabs">
+        <button class="btab active" data-panel="memmap">Memory map</button>
+        <button class="btab" data-panel="problems">Problems <span id="problemCount" class="count"></span></button>
+        <button class="btab" data-panel="output">Output</button>
+        <div class="tb-spacer"></div>
+        <button class="btab-close" data-cmd="view:bottom" title="Hide panel">Hide</button>
+      </div>
+      <div class="panel" id="panel-memmap"></div>
+      <div class="panel hidden" id="panel-problems"></div>
+      <div class="panel hidden" id="panel-output"><pre id="outputLog"></pre></div>
+    </section>
+
+    <!-- ===================================================== status bar -->
+    <footer id="status">
+      <span id="stPos">Ln 1, Col 1</span>
+      <span id="stAddr" title="Address of the current line">$----</span>
+      <span id="stSel"></span>
+      <span class="tb-spacer"></span>
+      <span id="stRange" title="Memory used by the program"></span>
+      <span id="stAcme" title="Live check with the real ACME"></span>
+      <span id="stFile"></span>
+    </footer>
+  </div>
+
+  <div id="tooltip" class="tooltip hidden"></div>
+  <div id="modalRoot"></div>
+  <div id="helpRoot" class="hidden"></div>
+  <div id="toasts"></div>
+
+  <script src="vendor/ace/ace.js"></script>
+  <script src="vendor/ace/ext-searchbox.js"></script>
+  <script src="vendor/ace/ext-language_tools.js"></script>
+  <script src="js/opcodes.js"></script>
+  <script src="js/assembler.js"></script>
+  <script src="js/analyzer.js"></script>
+  <script src="js/acme-mode.js"></script>
+  <script src="js/help-content.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/memmap.js"></script>
+  <script src="js/converter.js"></script>
+  <script src="js/help.js"></script>
+  <script src="js/dialogs.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

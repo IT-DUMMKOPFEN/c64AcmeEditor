@@ -1,0 +1,9 @@
+node_modules/
+dist/
+tool-src/
+vendor/tools/
+*.prg
+!examples/**/*.prg
+*.log
+.DS_Store
+Thumbs.db

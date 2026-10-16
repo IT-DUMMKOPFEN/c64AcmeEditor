@@ -1,0 +1,149 @@
+name: Build C64 ACME EDITOR
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # ---------------------------------------------------------------- sources
+  sources:
+    name: Fetch tool sources (ACME, Exomizer, sidreloc)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Subversion
+        run: sudo apt-get update && sudo apt-get install -y subversion
+      - name: Fetch sources
+        run: bash scripts/fetch-sources.sh tool-src
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tool-src
+          path: tool-src
+
+  # ------------------------------------------------------------------ tests
+  test:
+    name: Tests (assembler model vs. ACME)
+    needs: sources
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: tool-src, path: tool-src }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Build tools
+        run: bash scripts/build-tools.sh linux tool-src vendor/tools || true
+      - name: Run tests
+        run: ACME=vendor/tools/acme node test/run-tests.js
+
+  # ------------------------------------------------------------------ build
+  build:
+    name: Build ${{ matrix.name }}
+    needs: sources
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            os: windows-latest
+            target: win
+          - name: macOS Apple Silicon
+            os: macos-14
+            target: mac
+          - name: Linux x64
+            os: ubuntu-22.04
+            target: linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: tool-src, path: tool-src }
+
+      - name: Set up MSYS2 (Windows)
+        if: matrix.target == 'win'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: false
+          install: >-
+            mingw-w64-x86_64-gcc
+            make
+            unzip
+
+      - name: Build ACME, Exomizer, sidreloc (Windows)
+        if: matrix.target == 'win'
+        shell: msys2 {0}
+        run: bash scripts/build-tools.sh win tool-src vendor/tools || echo "some tools failed"
+
+      - name: Build ACME, Exomizer, sidreloc (macOS / Linux)
+        if: matrix.target != 'win'
+        run: bash scripts/build-tools.sh ${{ matrix.target }} tool-src vendor/tools || echo "some tools failed"
+
+      - name: Download VICE
+        shell: bash
+        run: bash scripts/fetch-vice.sh ${{ matrix.target }} vendor/tools || echo "VICE could not be bundled"
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Package
+        shell: bash
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          case "${{ matrix.target }}" in
+            win)   npx electron-builder --win --x64 --publish never ;;
+            mac)   npx electron-builder --mac --arm64 --publish never ;;
+            linux) npx electron-builder --linux --x64 --publish never ;;
+          esac
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: C64-ACME-EDITOR-${{ matrix.target }}
+          path: |
+            dist/*.exe
+            dist/*.zip
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------- release
+  release:
+    name: GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [ build, test ]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: artifacts }
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: C64 ACME EDITOR ${{ github.ref_name }}
+          prerelease: true
+          body: |
+            C64 ACME EDITOR ${{ github.ref_name }} by IT-Dummköpfe.
+
+            Downloads:
+            * **Windows**: `C64-ACME-EDITOR-0.1b-Windows-Setup.exe` (installer) or the `win-x64.zip` (portable)
+            * **macOS (Apple Silicon)**: `C64-ACME-EDITOR-0.1b-macOS-AppleSilicon.dmg`
+            * **Linux**: `.AppImage` or `.deb` - VICE is not bundled on Linux, install it with your package manager (e.g. `sudo apt install vice`) or as Flatpak `net.sf.VICE`.
+
+            See the README for first-start notes (unsigned app on macOS / Windows SmartScreen).
+          files: |
+            artifacts/**/*.exe
+            artifacts/**/*.zip
+            artifacts/**/*.dmg
+            artifacts/**/*.AppImage
+            artifacts/**/*.deb
