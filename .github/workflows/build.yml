@@ -128,21 +128,27 @@ jobs:
           if-no-files-found: error
 
   # ---------------------------------------------------------------- release
+  # Runs for version tags, or for a push to main whose commit message contains
+  # "[release]" (then the tag APP_TAG is created by the release action).
   release:
     name: GitHub release
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[release]'))
     needs: [ build, test ]
     runs-on: ubuntu-22.04
+    env:
+      APP_TAG: v0.1b
     steps:
       - uses: actions/download-artifact@v4
         with: { path: artifacts }
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          name: C64 ACME EDITOR ${{ github.ref_name }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || env.APP_TAG }}
+          target_commitish: ${{ github.sha }}
+          name: C64 ACME EDITOR ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || env.APP_TAG }}
           prerelease: true
           body: |
-            C64 ACME EDITOR ${{ github.ref_name }} by IT-Dummköpfe.
+            C64 ACME EDITOR 0.1b by IT-Dummköpfe.
 
             Downloads:
             * **Windows**: `C64-ACME-EDITOR-0.1b-Windows-Setup.exe` (installer) or the `win-x64.zip` (portable)
