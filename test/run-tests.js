@@ -5,7 +5,7 @@
 const fs = require('fs'), path = require('path'), os = require('os'), cp = require('child_process');
 const A = require('../src/renderer/js/assembler.js');
 const Z = require('../src/renderer/js/analyzer.js');
-const ACME = process.env.ACME || 'acme';
+const ACME = process.env.ACME ? (process.env.ACME.includes('/') || process.env.ACME.includes('\\') ? path.resolve(process.env.ACME) : process.env.ACME) : 'acme';
 const EX = path.join(__dirname, '..', 'examples');
 let failed = 0, passed = 0;
 const ok = (cond, name, detail) => {
