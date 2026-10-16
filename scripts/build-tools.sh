@@ -46,10 +46,10 @@ if [ -n "$EXOSRC" ] && [ -d "$EXOSRC" ]; then
     cd "$EXOSRC"
     make clean >/dev/null 2>&1 || true
     : > "$LOG"
-    make CC="$CC" CFLAGS="-O2 -w -fcommon -std=gnu99" LDFLAGS="-s $LDSTATIC" exomizer$EXT >>"$LOG" 2>&1 || \
-    make CC="$CC" CFLAGS="-O2 -w -fcommon" LDFLAGS="$LDSTATIC" exomizer >>"$LOG" 2>&1 || \
-    make CC="$CC" CFLAGS="-O2 -w -fcommon" LDFLAGS="$LDSTATIC" >>"$LOG" 2>&1 || \
-    $CC -O2 -w -fcommon $LDSTATIC -o exomizer$EXT $(ls *.c | grep -v -E '^(exobasic|bas_|bprg|test)' ) -lm >>"$LOG" 2>&1
+    # -std=gnu99: newer compilers default to C23, where "bool" is a keyword
+    make CC="$CC" CFLAGS="-O2 -w -fcommon -std=gnu99" LDFLAGS="-s $LDSTATIC" exomizer >>"$LOG" 2>&1 || \
+    make CC="$CC" CFLAGS="-O2 -w -fcommon -std=gnu99" LDFLAGS="$LDSTATIC" >>"$LOG" 2>&1 || \
+    make CC="$CC" CFLAGS="-O2 -w -fcommon" LDFLAGS="$LDSTATIC" exomizer >>"$LOG" 2>&1
     ls >>"$LOG" 2>&1
     if [ -f "exomizer$EXT" ]; then cp "exomizer$EXT" "$OUT/"; elif [ -f exomizer ]; then cp exomizer "$OUT/exomizer$EXT"; else exit 1; fi
   ) || {
