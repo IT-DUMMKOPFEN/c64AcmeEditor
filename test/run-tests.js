@@ -33,7 +33,7 @@ console.log(haveAcme ? 'ACME: ' + ACME : 'ACME not found - comparing with ACME i
 if (haveAcme && process.env.GITHUB_ACTIONS) console.log('::notice title=ACME version::' + (cp.spawnSync(ACME, ['-V'], { encoding: 'utf8' }).stdout || '').split('\n')[0]);
 
 console.log('\n# examples');
-const files = fs.readdirSync(EX).filter(f => f.endsWith('.asm')).map(f => path.join(EX, f)).concat([path.join(EX, 'music', 'demo_tune_src.asm')]);
+const files = fs.readdirSync(EX).filter(f => f.endsWith('.asm')).map(f => path.join(EX, f)).concat([path.join(__dirname, "..", "scripts", "music", "demo_tune_src.asm")]);
 for (const f of files) {
   const name = path.relative(EX, f);
   const r = model(f);

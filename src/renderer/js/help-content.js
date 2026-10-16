@@ -224,7 +224,37 @@
 <li>Read <a data-page="first-program">Your first program</a> for a step by step introduction.</li>
 <li>Place the cursor on any mnemonic (e.g. <code>lda</code>) and press <b>Ctrl+F1</b> for its reference page. Hover over numbers to see them in hex, decimal and binary.</li>
 </ul>
-<div class="note">The editor includes ACME (assembler), Exomizer (packer), sidreloc (SID relocator) and VICE (emulator). Their paths can be changed in <b>Settings &gt; Tools</b>.</div>
+<div class="note">The editor includes ACME (assembler), Exomizer (packer) and sidreloc (SID relocator). <b>VICE (emulator) is not included</b> - please install it once, see <a data-page="vice">Using VICE</a>. All paths can be changed in <b>Settings &gt; Tools</b>.</div>
+`));
+
+  pages.push(p('examples', 'Example programs', `
+<h1>Example programs</h1>
+<p>The editor comes with 20 fully commented example programs (<b>Examples</b> menu or Ctrl+Shift+E). Every example creates a runnable PRG: open it, press <b>F5</b>, read the comments, change something and run it again. Most examples end with SPACE.</p>
+<p>The ideas for the examples 11-20 were picked from <a href="https://codebase64.net/doku.php?id=start">Codebase64</a>; the header of every example links the matching articles.</p>
+<table>
+<tr><th>#</th><th>Example</th><th>What you learn</th><th>Codebase64</th></tr>
+<tr><td class="mono">01</td><td>Hello World</td><td>BASIC start line, CHROUT, loops</td><td>-</td></tr>
+<tr><td class="mono">02</td><td>Raster Bars</td><td>changing colours on every raster line, bad lines</td><td><a href="https://codebase64.net/doku.php?id=base:rasterbars_source">rasterbars source</a></td></tr>
+<tr><td class="mono">03</td><td>Soft Scroller</td><td>$D016 fine scrolling, two raster interrupts</td><td><a href="https://codebase64.net/doku.php?id=base:text_scroll">text scroll</a></td></tr>
+<tr><td class="mono">04</td><td>Sprite Animation</td><td>sprite pointers, 9th X bit, generated graphics</td><td><a href="https://codebase64.net/doku.php?id=base:spriteintro">spriteintro</a></td></tr>
+<tr><td class="mono">05</td><td>Sprite Scroller</td><td>reading the character ROM, ASL/ROL shifting</td><td><a href="https://codebase64.net/doku.php?id=base:scrolltext_using_sprites">scrolltext using sprites</a></td></tr>
+<tr><td class="mono">06</td><td>Simple Plasma</td><td>sine tables, indirect indexed addressing</td><td><a href="https://codebase64.net/doku.php?id=base:colorcycleplasma">colorcycleplasma</a></td></tr>
+<tr><td class="mono">07</td><td>Complex Plasma</td><td>dither charset, self-modifying code</td><td>-</td></tr>
+<tr><td class="mono">08</td><td>Rotating 3D Square</td><td>3D maths in ACME, Bresenham lines, double buffering</td><td><a href="https://codebase64.net/doku.php?id=base:bresenham_s_line_algorithm">bresenham's line algorithm</a>, <a href="https://codebase64.net/doku.php?id=base:3d_rotation">3d rotation</a></td></tr>
+<tr><td class="mono">09</td><td>SID Player 1x/2x/3x</td><td>PSID header, init/play, multispeed</td><td>-</td></tr>
+<tr><td class="mono">10</td><td>Koala Viewer</td><td>multicolour bitmap, VIC banks</td><td><a href="https://codebase64.net/doku.php?id=base:calculate_vic_settings_for_showing_a_koala">calculate vic settings for showing a koala</a></td></tr>
+<tr><td class="mono">11</td><td>Raster Split</td><td>table driven raster interrupt chain, $D018</td><td><a href="https://codebase64.net/doku.php?id=base:horizontal_raster_split">horizontal raster split</a>, <a href="https://codebase64.net/doku.php?id=base:introduction_to_raster_irqs">introduction to raster irqs</a></td></tr>
+<tr><td class="mono">12</td><td>Parallax Starfield</td><td>copying the charset, redefined characters, 16-bit X</td><td><a href="https://codebase64.net/doku.php?id=base:starfield">starfield</a>, <a href="https://codebase64.net/doku.php?id=base:make_modified_character_sets">make modified character sets</a></td></tr>
+<tr><td class="mono">13</td><td>DYCP Scroller</td><td>charset as bitmap canvas, unrolled loops, look-up tables</td><td><a href="https://codebase64.net/doku.php?id=magazines:chacking6">chacking6</a></td></tr>
+<tr><td class="mono">14</td><td>Character Fire</td><td>SID noise random numbers, 2D buffer, dither charset</td><td><a href="https://codebase64.net/doku.php?id=base:4x4_charset_fire_with_lots_of_colors">4x4 charset fire with lots of colors</a></td></tr>
+<tr><td class="mono">15</td><td>Colour Cycling Text</td><td>colour RAM, colour gradients</td><td><a href="https://codebase64.net/doku.php?id=base:colour_flashing_notewriter_style">colour flashing notewriter style</a></td></tr>
+<tr><td class="mono">16</td><td>Joystick Sprite</td><td>$DC00, clamping, button edges, hex output, SID sound</td><td><a href="https://codebase64.net/doku.php?id=base:joystick_input_handling">joystick input handling</a></td></tr>
+<tr><td class="mono">17</td><td>Random Maze</td><td>8-bit and 16-bit LFSR random generators</td><td><a href="https://codebase64.net/doku.php?id=base:small_fast_8-bit_prng">small fast 8-bit prng</a>, <a href="https://codebase64.net/doku.php?id=base:comparison_of_6502_random_generators">comparison of 6502 random generators</a></td></tr>
+<tr><td class="mono">18</td><td>Key Codes</td><td>GETIN, hex / BCD decimal / binary output, PETSCII to screen code</td><td><a href="https://codebase64.net/doku.php?id=base:hexadecimal_to_decimal_conversion">hexadecimal to decimal conversion</a>, <a href="https://codebase64.net/doku.php?id=base:petscii_to_screencode">petscii to screencode</a></td></tr>
+<tr><td class="mono">19</td><td>Open Borders</td><td>the RSEL border trick, sprites in the border</td><td><a href="https://codebase64.net/doku.php?id=vic:opening_the_top_bottom_borders">opening the top bottom borders</a></td></tr>
+<tr><td class="mono">20</td><td>Hires Bitmap Plot</td><td>bitmap mode, fast plot with tables, colour clash</td><td><a href="https://codebase64.net/doku.php?id=base:dots_and_plots">dots and plots</a></td></tr>
+</table>
+<div class="note">An example opens as a new, unsaved copy, so the original stays unchanged. When you save it, the files it includes (music, pictures) are copied next to your file.</div>
 `));
 
   pages.push(p('shortcuts', 'Keyboard shortcuts', `
@@ -857,6 +887,15 @@ ${table(['Address', 'Name', 'Description'], ROUTINES)}
 
   pages.push(p('vice', 'Using VICE', `
 <h1>Using VICE</h1>
+<h2>Installing VICE</h2>
+<p>VICE is <b>not included</b> in the C64 ACME EDITOR - you install it once yourself. Download page: <a href="https://vice-emu.sourceforge.io/index.html#download">vice-emu.sourceforge.io</a>.</p>
+<ul>
+<li><b>Windows:</b> download the GTK3 VICE zip and unpack it, e.g. to <code>C:\VICE</code>. If the editor does not find it, choose <code>bin\x64sc.exe</code> in <b>Settings &gt; Tools</b>.</li>
+<li><b>macOS:</b> download the VICE <code>.dmg</code> and copy VICE to <i>Applications</i>, or <code>brew install vice</code>.</li>
+<li><b>Linux:</b> <code>sudo apt install vice</code> (or your package manager), or the Flatpak <code>net.sf.VICE</code>. As tool path you can also enter a command such as <code>flatpak run net.sf.VICE</code>. Some distributions ship VICE without the C64 ROMs - see the VICE documentation.</li>
+</ul>
+<p>If VICE is missing when you press F5, the editor shows these steps and a <b>Locate x64sc...</b> button.</p>
+<h2>Running programs</h2>
 <p>VICE is the most accurate C64 emulator. The editor starts <code>x64sc</code> with your program (autostart). All options are in <b>Emulator &gt; VICE Settings</b>: C64 model (PAL/NTSC), SID chip, borders, joystick ports, warp mode during loading and more.</p>
 <h2>Useful VICE keys</h2>
 <table>
@@ -905,14 +944,14 @@ ${table(['Address', 'Name', 'Description'], ROUTINES)}
 </ul>
 <h2>More to learn</h2>
 <ul class="src-list">
-<li>Codebase64 - tutorials and code for the C64 - <a href="https://codebase64.org/">codebase64.org</a></li>
+<li>Codebase64 - the C64 coding wiki, the source of ideas for the examples 11-20 - <a href="https://codebase64.net/doku.php?id=start">codebase64.net</a></li>
 <li>C64-Wiki - <a href="https://www.c64-wiki.de/">c64-wiki.de</a></li>
 </ul>
 `));
 
   window.HelpContent = {
     groups: [
-      { title: 'Getting started', ids: ['welcome', 'first-program', 'shortcuts'] },
+      { title: 'Getting started', ids: ['welcome', 'first-program', 'examples', 'shortcuts'] },
       { title: '6502 / 6510 CPU', ids: ['cpu', 'addrmodes', 'opcodes', 'illegal', 'opmatrix', 'numbers', 'branches', 'maths'] },
       { title: 'ACME assembler', ids: ['acme-intro', 'acme-po', 'acme-expr', 'acme-macros', 'acme-errors', 'acme-cli'] },
       { title: 'C64 hardware', ids: ['memmap', 'zeropage', 'vic', 'sprites', 'raster', 'sid', 'cia', 'colors', 'petscii', 'kernal'] },

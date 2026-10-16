@@ -85,18 +85,12 @@ jobs:
         if: matrix.target != 'win'
         run: bash scripts/build-tools.sh ${{ matrix.target }} tool-src vendor/tools || echo "some tools failed"
 
-      - name: Download VICE
-        shell: bash
-        run: bash scripts/fetch-vice.sh ${{ matrix.target }} vendor/tools || echo "VICE could not be bundled"
-
       - name: Report bundled tools
         shell: bash
         run: |
           for t in acme exomizer sidreloc; do
             if ls vendor/tools/$t* >/dev/null 2>&1; then echo "::notice title=${{ matrix.target }} tool::$t built"; else echo "::warning title=${{ matrix.target }} tool::$t missing"; fi
           done
-          V=$(find vendor/tools -maxdepth 7 \( -name x64sc -o -name x64sc.exe \) 2>/dev/null | head -1)
-          if [ -n "$V" ]; then echo "::notice title=${{ matrix.target }} VICE::$V"; else echo "::warning title=${{ matrix.target }} VICE::not bundled"; fi
 
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
@@ -136,7 +130,7 @@ jobs:
     needs: [ build, test ]
     runs-on: ubuntu-22.04
     env:
-      APP_TAG: v0.1b
+      APP_TAG: v0.2b
     steps:
       - uses: actions/download-artifact@v4
         with: { path: artifacts }
@@ -148,12 +142,19 @@ jobs:
           name: C64 ACME EDITOR ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || env.APP_TAG }}
           prerelease: true
           body: |
-            C64 ACME EDITOR 0.1b by IT-Dummköpfe.
+            C64 ACME EDITOR 0.2b by IT-Dummköpfe.
 
             Downloads:
-            * **Windows**: `C64-ACME-EDITOR-0.1b-Windows-Setup.exe` (installer) or the `win-x64.zip` (portable)
-            * **macOS (Apple Silicon)**: `C64-ACME-EDITOR-0.1b-macOS-AppleSilicon.dmg`
-            * **Linux**: `.AppImage` or `.deb` - VICE is not bundled on Linux, install it with your package manager (e.g. `sudo apt install vice`) or as Flatpak `net.sf.VICE`.
+            * **Windows**: `C64-ACME-EDITOR-0.2b-Windows-Setup.exe` (installer) or the `win-x64.zip` (portable)
+            * **macOS (Apple Silicon)**: `C64-ACME-EDITOR-0.2b-macOS-AppleSilicon.dmg`
+            * **Linux**: `.AppImage` or `.deb`
+
+            ACME, Exomizer and sidreloc are included. **VICE is not included any more** - please install it yourself
+            (https://vice-emu.sourceforge.io/ - Linux: `sudo apt install vice` or Flatpak `net.sf.VICE`, macOS: VICE .dmg or `brew install vice`).
+            The editor finds an installed VICE automatically, or set the path in Settings > Tools.
+
+            New in 0.2b: 10 new documented examples (11-20, ideas from Codebase64), Info button, version and author on the
+            welcome page, folder/file chooser when relocating a SID, the demo tune source is no longer listed as an example.
 
             See the README for first-start notes (unsigned app on macOS / Windows SmartScreen).
           files: |

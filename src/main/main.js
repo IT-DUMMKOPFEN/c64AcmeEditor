@@ -11,7 +11,7 @@ const { Tools } = require('./tools.js');
 const Asm = require('../renderer/js/assembler.js');
 
 const APP_NAME = 'C64 ACME EDITOR';
-const APP_VERSION = '0.1b';
+const APP_VERSION = '0.2b';
 const APP_AUTHOR = 'IT-Dummköpfe';
 
 app.setName(APP_NAME);
@@ -296,6 +296,8 @@ function registerIpc() {
   });
 
   ipcMain.handle('dialog:open', async (e, opts) => {
+    // self test only: answer the open dialog with a fixed file
+    if (process.env.C64AE_AUTOTEST && process.env.C64AE_AUTOTEST_OPEN) return [process.env.C64AE_AUTOTEST_OPEN];
     const r = await dialog.showOpenDialog(win, Object.assign({ properties: ['openFile'], defaultPath: settings.get().lastDir || undefined }, opts || {}));
     return r.canceled ? null : r.filePaths;
   });

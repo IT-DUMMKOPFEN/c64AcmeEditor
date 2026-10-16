@@ -125,14 +125,18 @@ class Tools {
     if (!found && tool === 'vice') {
       const candidates = [];
       if (IS_MAC) {
-        for (const base of ['/Applications', path.join(os.homedir(), 'Applications')]) {
+        for (const base of ['/Applications', path.join(os.homedir(), 'Applications'), path.join(os.homedir(), 'Downloads')]) {
           try {
             for (const d of fs.readdirSync(base)) if (/vice/i.test(d)) candidates.push(path.join(base, d));
           } catch (e) { /* ignore */ }
         }
       }
       if (IS_WIN) {
-        for (const base of [process.env['ProgramFiles'], process.env['ProgramFiles(x86)'], 'C:\\']) {
+        // VICE for Windows is a zip without installer: look in the usual
+        // places where people unpack it (folders with "vice" in the name)
+        const home = os.homedir();
+        for (const base of [process.env['ProgramFiles'], process.env['ProgramFiles(x86)'], 'C:\\', process.env['LOCALAPPDATA'] && path.join(process.env['LOCALAPPDATA'], 'Programs'),
+          home, path.join(home, 'Downloads'), path.join(home, 'Desktop'), path.join(home, 'Documents')]) {
           if (!base) continue;
           try { for (const d of fs.readdirSync(base)) if (/vice/i.test(d)) candidates.push(path.join(base, d)); } catch (e) { /* ignore */ }
         }
@@ -272,6 +276,7 @@ class Tools {
     if (opts.strict) args.push('-s');
     if (opts.tolerance) args.push('-t', String(opts.tolerance));
     args.push('-v', opts.input, opts.output);
+    try { fs.mkdirSync(path.dirname(opts.output), { recursive: true }); } catch (e) { /* sidreloc reports the error */ }
     const r = await this.run(sr.path, args, { cwd: path.dirname(opts.input), timeout: 180000 });
     const base = r.code & 31;
     const MESSAGES = {

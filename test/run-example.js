@@ -17,6 +17,7 @@ let shots = 0;
 for (let f = 0; f < total; f++) {
   if (opts.pressAt && f === parseInt(opts.pressAt, 10)) c.keys.add(opts.key);
   if (opts.typeAt && f === parseInt(opts.typeAt, 10)) c.type(opts.text);
+  if (opts.joy) { const [from, to, bits] = opts.joy.split(':').map(Number); c.joy2 = (f >= from && f < to) ? bits : 0; }
   c.runFrames(1);
   if (opts.every && f % parseInt(opts.every, 10) === 0 && shots < 6) c.savePPM(out.replace('.ppm', `_${shots++}.ppm`));
 }

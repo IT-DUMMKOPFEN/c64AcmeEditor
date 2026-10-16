@@ -289,11 +289,21 @@
     if (show) {
       w.innerHTML = '';
       const box = UI.el('div', { class: 'welcome-box' },
-        UI.el('div', { class: 'brand' }, UI.el('span', { class: 'stripes', html: '<i></i><i></i><i></i><i></i><i></i>' }), UI.el('h1', { text: `${App.info.name} ${App.info.version}` })),
+        UI.el('div', { class: 'brand' }, UI.el('span', { class: 'stripes', html: '<i></i><i></i><i></i><i></i><i></i>' }), UI.el('h1', { text: `${App.info.name}` })),
+        UI.el('div', { class: 'welcome-meta' }, `Version ${App.info.version}  \u2022  by ${App.info.author}`),
         UI.el('p', { text: 'Write 6502 assembler for the Commodore 64 with ACME. Every line is checked while you type, the memory map shows what you use, F5 runs your program in VICE.' }),
+        UI.el('p', { class: 'welcome-vice' }),
         UI.el('div', { class: 'ready', text: 'READY.' }));
+      // VICE is not bundled: tell the user how to get it when it is missing
+      const viceNote = box.querySelector('.welcome-vice');
+      const showVice = (st) => {
+        if (!st || !st.vice || st.vice.found) { viceNote.remove(); return; }
+        viceNote.innerHTML = 'VICE is not included and was not found on this computer. To run your programs, please <a href="#" data-url="https://vice-emu.sourceforge.io/index.html#download">install VICE</a> and, if needed, set its path in <a href="#" data-cmd="settings:open" data-arg="tools">Settings &gt; Tools</a>.';
+      };
+      if (App.toolState) showVice(App.toolState); else api.toolStatus().then(showVice).catch(() => viceNote.remove());
+      box.addEventListener('click', (e) => { const a = e.target.closest('a[data-url]'); if (a) { e.preventDefault(); api.openExternal(a.dataset.url); } });
       const actions = UI.el('div', { class: 'welcome-actions' });
-      for (const [label, cmd, primary] of [['New file', 'file:new', true], ['Open file', 'file:open'], ['Example programs', 'examples:gallery'], ['Help center', 'help:open']]) {
+      for (const [label, cmd, primary] of [['New file', 'file:new', true], ['Open file', 'file:open'], ['Example programs', 'examples:gallery'], ['Help center', 'help:open'], ['Info', 'help:about']]) {
         const b = UI.el('button', { class: 'btn' + (primary ? ' primary' : ''), text: label, 'data-cmd': cmd });
         actions.appendChild(b);
       }
@@ -301,6 +311,39 @@
       w.appendChild(box);
     }
     w.classList.toggle('hidden', !show);
+  }
+
+  // ====================================================== VICE missing
+  // VICE is not bundled with the editor (since 0.2b). When it cannot be found
+  // we explain how to install it and let the user point to x64sc directly.
+  async function viceMissing(prg, labels) {
+    const plat = App.info.platform;
+    const how = plat === 'win32'
+      ? 'Windows: download the GTK3 VICE zip from the VICE home page, unpack it (for example to C:\\VICE) and choose bin\\x64sc.exe below.'
+      : plat === 'darwin'
+        ? 'macOS: download the VICE .dmg for macOS from the VICE home page and copy VICE to Applications - the editor finds it there. (With Homebrew: brew install vice.)'
+        : 'Linux: install VICE with your package manager (Debian/Ubuntu: sudo apt install vice) or as Flatpak: flatpak install flathub net.sf.VICE. Note: some distributions ship VICE without the C64 ROMs.';
+    const body = UI.el('div', null,
+      UI.el('p', { text: 'VICE, the C64 emulator, is not included in the C64 ACME EDITOR. Please install it once - after that F5 runs your programs directly.' }),
+      UI.el('p', { text: how }),
+      UI.el('p', { style: 'color:var(--muted);font-size:12px', text: 'The editor looks for x64sc in your PATH, in the usual program folders and in the path set in Settings > Tools.' }));
+    const r = await UI.modal({
+      title: 'VICE not found', body,
+      buttons: [{ label: 'Close', value: null }, { label: 'Open the VICE download page', value: 'web' }, { label: 'Locate x64sc...', value: 'pick', primary: true }]
+    });
+    if (r === 'web') api.openExternal('https://vice-emu.sourceforge.io/index.html#download');
+    if (r === 'pick') {
+      const p = await api.pickTool('vice');
+      if (!p) return;
+      await refreshToolState();
+      if (App.toolState && App.toolState.vice && !App.toolState.vice.found) { UI.toast('This does not look like VICE (x64sc). Please try again.', 'err'); return; }
+      UI.toast('VICE found: ' + p, 'ok', 4000);
+      if (prg !== undefined) {
+        const v = await api.runVice(prg, labels);
+        logOutput(v.log, v.ok ? '' : 'err');
+        if (!v.ok) UI.toast('Could not start VICE - see Output.', 'err');
+      }
+    }
   }
 
   // ======================================================= file handling
@@ -947,7 +990,7 @@ picture !bin "${rel}",, 2       ; skip the 2-byte load address
     }
     const v = await api.runVice(prg, r.labelFile);
     logOutput(v.log, v.ok ? '' : 'err');
-    if (!v.ok) { UI.toast(v.missing ? 'VICE was not found. Set the path in Emulator > VICE Settings.' : 'Could not start VICE - see Output.', 'err'); showPanel('output'); return; }
+    if (!v.ok) { if (v.missing) { await viceMissing(prg, r.labelFile); return; } UI.toast('Could not start VICE - see Output.', 'err'); showPanel('output'); return; }
     UI.toast(`Running in VICE: ${UI.hex(r.start || 0, 4)}-${UI.hex((r.end || 1) - 1, 4)}${packed ? ' (packed)' : ''}`, 'ok', 2500);
   }
 
@@ -1062,10 +1105,10 @@ picture !bin "${rel}",, 2       ; skip the 2-byte load address
       case 'tools:exomizer': await Dialogs.packFile(); break;
       case 'vice:runFile': {
         const f = await api.openDialog({ title: 'Run a PRG in VICE', filters: [{ name: 'C64 programs', extensions: ['prg', 'd64', 't64', 'crt', 'p00'] }] });
-        if (f) { const v = await api.runVice(f[0], null); logOutput(v.log, v.ok ? '' : 'err'); if (!v.ok) UI.toast('Could not start VICE - see Output.', 'err'); }
+        if (f) { const v = await api.runVice(f[0], null); logOutput(v.log, v.ok ? '' : 'err'); if (!v.ok) { if (v.missing) await viceMissing(f[0], null); else UI.toast('Could not start VICE - see Output.', 'err'); } }
         break;
       }
-      case 'vice:start': { const v = await api.runVice(null, null); logOutput(v.log, v.ok ? '' : 'err'); if (!v.ok) UI.toast('Could not start VICE - see Output.', 'err'); break; }
+      case 'vice:start': { const v = await api.runVice(null, null); logOutput(v.log, v.ok ? '' : 'err'); if (!v.ok) { if (v.missing) await viceMissing(null, null); else UI.toast('Could not start VICE - see Output.', 'err'); } break; }
       case 'settings:open': await Dialogs.settings(arg); break;
 
       case 'examples:gallery': await Dialogs.examples(); break;

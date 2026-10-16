@@ -70,8 +70,8 @@ class C64 {
     if (a < 0xdc00) return this.colorRam[a - 0xd800] | 0xf0;
     if (a < 0xdd00) {
       const r = a & 0x0f, c = this.cia1;
-      if (r === 0x00) return c.pa;
-      if (r === 0x01) return this.keyRows(c.pa);
+      if (r === 0x00) return c.pa & (0xff ^ (this.joy2 || 0));  // joystick port 2 (bits 0-4, 0 = pressed)
+      if (r === 0x01) return this.keyRows(c.pa) & (0xff ^ (this.joy1 || 0));
       if (r === 0x04) return c.ta & 0xff;
       if (r === 0x05) return c.ta >> 8;
       if (r === 0x0d) { const v = c.icr | ((c.icr & c.mask) ? 0x80 : 0); c.icr = 0; return v; }
@@ -174,6 +174,20 @@ class C64 {
     const put = (x, y, c) => { const p = (y * W + x) * 3; const rgb = PALETTE[c & 15]; img[p] = rgb[0]; img[p + 1] = rgb[1]; img[p + 2] = rgb[2]; };
     let vcbase = 0, rc = 0, idle = true;
     const first = 16;
+    // vertical border flip-flop (set at line 251/247, cleared at 51/55 with DEN)
+    const vborder = new Array(312);
+    let vf = true;
+    for (let pass = 0; pass < 2; pass++) {
+      for (let line = 0; line < 312; line++) {
+        const s = this.lineState[line] || this.lineState[0];
+        if (s) {
+          const rsel = s.d011 & 8;
+          if (line === (rsel ? 251 : 247)) vf = true;
+          if (line === (rsel ? 51 : 55) && (s.d011 & 0x10)) vf = false;
+        }
+        vborder[line] = vf;
+      }
+    }
     for (let line = 0; line < 312; line++) {
       const s = this.lineState[line] || this.lineState[0];
       if (!s) continue;
@@ -193,7 +207,7 @@ class C64 {
         const xs = s.d016 & 7;
         for (let x = 0; x < W; x++) {
           let c = s.d020;
-          if (den && line >= top && line <= bottom && x >= left && x < right) {
+          if (!vborder[line] && x >= left && x < right) {
             c = s.d021;
             const gx = x - 32 - xs;
             if (!idle && gx >= 0 && gx < 320) {
@@ -241,6 +255,8 @@ class C64 {
           } else if ((byte >> (7 - (dp & 7))) & 1) c = v[0x27 + n];
           if (c < 0) continue;
           const X = sx + px + 8, Y = sy + r + 1 - first;
+          const ln = (Y + first) % 312;
+          if (vborder[ln] || X < ((v[0x16] & 8) ? 32 : 39) || X >= ((v[0x16] & 8) ? 352 : 343)) continue;
           if (X >= 0 && X < W && Y >= 0 && Y < H) put(X, Y, c & 15);
         }
       }

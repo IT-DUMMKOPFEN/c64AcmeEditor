@@ -1,11 +1,14 @@
 ;==============================================================================
 ;  DEMO TUNE - a tiny 3-voice SID music player + song, saved as a PSID file
 ;------------------------------------------------------------------------------
-;  C64 ACME EDITOR example  -  (c) 2026 IT-Dummköpfe  -  MIT License
+;  C64 ACME EDITOR  -  (c) 2026 IT-Dummköpfe  -  MIT License
 ;
-;  Assemble this file to create "demo_tune.sid". The SID player example
-;  (09_sid_player.asm) includes that file, and you can try the SID relocator
-;  (Tools > Relocate SID) on it.
+;  This is the source of examples/music/demo_tune.sid (it is not an example
+;  itself, because it does not create a runnable program). Assemble it with
+;      acme scripts/music/demo_tune_src.asm
+;  and copy the resulting demo_tune.sid to examples/music/. The SID player
+;  example (09_sid_player.asm) includes that file, and you can try the SID
+;  relocator (Tools > Relocate SID) on it.
 ;
 ;  What you can learn here:
 ;    * how a PSID file header looks (124 bytes, big-endian values!)

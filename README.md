@@ -1,8 +1,8 @@
-# C64 ACME EDITOR 0.1b
+# C64 ACME EDITOR 0.2b
 
 An editor for writing Commodore 64 machine language with the **ACME** cross
-assembler - with live checking, a memory map, the **VICE** emulator, the
-**Exomizer** packer, the **sidreloc** SID relocator and a help center to learn
+assembler - with live checking, a memory map, support for the **VICE**
+emulator (installed separately), the **Exomizer** packer, the **sidreloc** SID relocator and a help center to learn
 6502 assembler.
 
 by **IT-Dummköpfe** - MIT license
@@ -39,24 +39,31 @@ by **IT-Dummköpfe** - MIT license
   (`$d020` = border colour), label values, instruction cycles and opcodes.
 - **Number converter** (Ctrl+K) for HEX / DEC / BIN with bit switches. It
   also evaluates ACME expressions with the labels of your program.
-- **Build & run** (F5): assemble with ACME and start the program in VICE.
-  All VICE options (C64 model, SID chip, borders, joysticks, warp, true drive,
+- **Build & run** (F5): assemble with ACME and start the program in VICE
+  (VICE is not included - see *Installing VICE* below). All VICE options (C64 model, SID chip, borders, joysticks, warp, true drive,
   extra arguments ...) are in the settings.
 - **Save as PRG** with the question whether to pack it with **Exomizer**
   (start address and decrunch effect selectable).
-- **Relocate SID** tunes to another address with **sidreloc**, show SID
-  header information and insert a matching `!bin` include.
+- **Relocate SID** tunes to another address with **sidreloc** (choose the
+  folder and file name for the result), show SID header information and
+  insert a matching `!bin` include.
 - **Help center** (F1): 6502 instruction set with opcodes and cycles, illegal
   opcodes, opcode matrix, addressing modes, ACME pseudo opcodes and
   expressions, ACME error messages, C64 memory map, VIC-II / SID / CIA
   registers, KERNAL routines, PETSCII and screen codes, colours, raster
   interrupts, sprites, scrolling, SID music, bitmaps, speed tricks, Exomizer
   and VICE. Ctrl+F1 opens the page for the word at the cursor.
-- **Examples**, all fully commented:
+- **20 examples**, all fully commented and runnable:
   Hello World - Raster Bars (border + background) - Soft Scroller - Sprite
   Animation - Sprite Scroller - Simple Plasma - Complex Plasma - Rotating 3D
-  Square - SID Player 1x/2x/3x with text - Koala Picture Viewer (.kla) - and
-  the source of the included demo tune.
+  Square - SID Player 1x/2x/3x with text - Koala Picture Viewer (.kla) -
+  Raster Split - Parallax Starfield - DYCP Scroller - Character Fire - Colour
+  Cycling Text - Joystick Controlled Sprite - Random Maze (8/16-bit LFSR) -
+  Key Codes in Hex/Dec/Bin - Open Top/Bottom Border - Hires Bitmap Plot.
+  The ideas for examples 11-20 come from
+  [Codebase64](https://codebase64.net/doku.php?id=start); every example links
+  the matching articles.
+- **Info** button in the toolbar: name, version, author, tools and sources.
 
 ## Download
 
@@ -65,9 +72,12 @@ Ready-to-use builds are created by GitHub Actions for every release:
 
 | System | File | Included tools |
 |---|---|---|
-| Windows 10/11 (x64) | `C64-ACME-EDITOR-0.1b-Windows-Setup.exe` or `...-win-x64.zip` (portable) | ACME, Exomizer, sidreloc, VICE |
-| macOS (Apple Silicon) | `C64-ACME-EDITOR-0.1b-macOS-AppleSilicon.dmg` | ACME, Exomizer, sidreloc, VICE |
-| Linux (x64) | `.AppImage` or `.deb` | ACME, Exomizer, sidreloc - VICE from your system |
+| Windows 10/11 (x64) | `C64-ACME-EDITOR-0.2b-Windows-Setup.exe` or `...-win-x64.zip` (portable) | ACME, Exomizer, sidreloc |
+| macOS (Apple Silicon) | `C64-ACME-EDITOR-0.2b-macOS-AppleSilicon.dmg` | ACME, Exomizer, sidreloc |
+| Linux (x64) | `.AppImage` or `.deb` | ACME, Exomizer, sidreloc |
+
+**VICE is not included** (since 0.2b). Install it yourself to run your
+programs - see below.
 
 ### First start notes
 
@@ -77,11 +87,27 @@ Ready-to-use builds are created by GitHub Actions for every release:
   `xattr -dr com.apple.quarantine "/Applications/C64 ACME EDITOR.app"`
 - **Windows:** SmartScreen may warn about an unknown publisher -
   *More info > Run anyway*.
-- **Linux:** there is no official VICE binary for Linux. Install it with your
-  package manager (e.g. `sudo apt install vice`) or as Flatpak
-  (`flatpak install flathub net.sf.VICE`). The editor finds `x64sc`
-  automatically; otherwise set the path (or a command like
-  `flatpak run net.sf.VICE`) in *Settings > Tools*.
+
+### Installing VICE
+
+Download page: https://vice-emu.sourceforge.io/index.html#download
+
+- **Windows:** download the GTK3 VICE zip, unpack it (e.g. to `C:\VICE`).
+  The editor searches the usual folders; otherwise choose `bin\x64sc.exe` in
+  *Settings > Tools* (or click *Locate x64sc...* when the editor asks).
+- **macOS:** download the VICE `.dmg` for macOS and copy VICE to
+  *Applications* (or `brew install vice`). The editor finds it there.
+- **Linux:** `sudo apt install vice` (or your distribution's package manager)
+  or as Flatpak: `flatpak install flathub net.sf.VICE`. Some distributions ship
+  VICE without the C64 ROMs - the VICE documentation explains how to add them.
+  A command like `flatpak run net.sf.VICE` can be entered in *Settings > Tools*.
+
+Why no built-in emulator? For 0.2b the JavaScript emulators
+[JSC64](https://github.com/Reggino/jsc64) and
+[c64js](https://github.com/mborgbrant/c64js) were tested as a replacement.
+Neither runs the examples correctly (no or incomplete SID sound, broken raster
+effects and scrollers, missing bad lines), so the editor keeps using the real
+VICE, which you install once.
 
 ## Using the editor
 
@@ -105,7 +131,6 @@ Requirements: Node.js 20+, a C compiler (gcc/clang; MSYS2 MinGW64 on Windows).
 npm install
 bash scripts/fetch-sources.sh tool-src            # ACME, Exomizer, sidreloc sources
 bash scripts/build-tools.sh linux tool-src        # or: mac / win  -> vendor/tools
-bash scripts/fetch-vice.sh mac                    # Windows / macOS: download VICE
 npm start                                         # run the editor
 npm run dist                                      # create installers in dist/
 ```
@@ -130,8 +155,9 @@ src/renderer/      user interface
   js/analyzer.js   sanity check
   js/opcodes.js    6502/6510 instruction set data
   js/help-*.js     help center
-examples/          example programs, demo tune and demo picture
-scripts/           download/build scripts for ACME, Exomizer, sidreloc, VICE
+examples/          example programs (+ demo tune and demo picture they use)
+scripts/           download/build scripts for ACME, Exomizer, sidreloc,
+  music/           source of the demo tune (assembles to a .sid, not a PRG)
 .github/workflows  builds for Windows, macOS (Apple Silicon) and Linux
 ```
 
@@ -145,5 +171,6 @@ scripts/           download/build scripts for ACME, Exomizer, sidreloc, VICE
 - Memory map: https://www.c64-wiki.de/wiki/Speicherbelegungsplan - https://pagetable.com/c64ref/c64mem/
 - BASIC & KERNAL ROM disassembly: https://pagetable.com/c64ref/c64disasm/
 - Character set / PETSCII: https://pagetable.com/c64ref/charset/
+- Codebase64 (ideas for the examples 11-20): https://codebase64.net/doku.php?id=start
 
 Third party licenses: see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

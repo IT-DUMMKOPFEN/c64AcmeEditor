@@ -57,7 +57,7 @@
 
     // ---- tools
     const pTools = addPage('tools', 'Tools');
-    pTools.appendChild(el('p', { style: 'color:var(--muted)', text: 'The editor comes with ACME, Exomizer, sidreloc and VICE. If a tool is missing or you want to use another version, choose its program file (or folder).' }));
+    pTools.appendChild(el('p', { style: 'color:var(--muted)', text: 'The editor comes with ACME, Exomizer and sidreloc. VICE is not included: install it yourself (see Help > Using VICE) - the editor finds it in the usual places, or choose x64sc here. To use another version of a tool, choose its program file (or folder).' }));
     const paths = Object.assign({}, s.paths);
     const toolRows = el('div');
     const renderTools = (st) => {
@@ -76,7 +76,7 @@
     };
     renderTools(status);
     pTools.appendChild(toolRows);
-    const linkP = el('p', { style: 'color:var(--muted);font-size:12px', html: 'Downloads: <a href="#" data-url="https://sourceforge.net/projects/acme-crossass/">ACME</a> - <a href="#" data-url="https://bitbucket.org/magli143/exomizer/wiki/Home">Exomizer</a> - <a href="#" data-url="https://www.linusakesson.net/software/sidreloc/index.php">sidreloc</a> - <a href="#" data-url="https://vice-emu.sourceforge.io/">VICE</a>' });
+    const linkP = el('p', { style: 'color:var(--muted);font-size:12px', html: 'Downloads: <a href="#" data-url="https://sourceforge.net/projects/acme-crossass/">ACME</a> - <a href="#" data-url="https://bitbucket.org/magli143/exomizer/wiki/Home">Exomizer</a> - <a href="#" data-url="https://www.linusakesson.net/software/sidreloc/index.php">sidreloc</a> - <a href="#" data-url="https://vice-emu.sourceforge.io/index.html#download">VICE (please install)</a>' });
     linkP.addEventListener('click', (e) => { const a = e.target.closest('a'); if (a) { e.preventDefault(); api.openExternal(a.dataset.url); } });
     pTools.appendChild(linkP);
 
@@ -238,9 +238,22 @@
     const h = await api.sidInfo(input);
     if (!h) { UI.toast('This is not a PSID/RSID file.', 'err'); return; }
     const target = text('$c000', { style: 'width:110px' });
-    const out = text('', { style: 'width:100%' });
-    const updOut = () => { const v = UI.parseNum(target.value); out.value = input.replace(/\.sid$/i, '') + '_' + (isNaN(v) ? 'xxxx' : v.toString(16).padStart(4, '0')) + '.sid'; };
+    const out = text('', { style: 'flex:1;min-width:0' });
+    // the output folder/name can be chosen freely; until the user picks one
+    // it follows the new start address (tune_c000.sid next to the original)
+    let outDir = App.path.dirname(input), outPicked = false;
+    const updOut = () => {
+      if (outPicked) return;
+      const v = UI.parseNum(target.value);
+      out.value = App.path.join(outDir, App.path.basename(input).replace(/\.sid$/i, '') + '_' + (isNaN(v) ? 'xxxx' : v.toString(16).padStart(4, '0')) + '.sid');
+    };
     target.addEventListener('input', updOut); updOut();
+    out.addEventListener('input', () => { outPicked = true; });
+    const browse = el('button', { class: 'btn small', text: 'Change folder / name...', title: 'Choose where the relocated SID file is saved' });
+    browse.addEventListener('click', async () => {
+      const p = await api.saveDialog({ title: 'Save the relocated SID as', defaultPath: out.value, filters: [{ name: 'SID music', extensions: ['sid'] }] });
+      if (p) { out.value = /\.sid$/i.test(p) ? p : p + '.sid'; outDir = App.path.dirname(out.value); outPicked = true; }
+    });
     const zpMode = select('range', [['range', 'Move zero page use into this range:'], ['keep', 'Keep the zero page addresses (-k)']]);
     const zp = text('80-ff', { style: 'width:90px' });
     const force = checkbox('Write the file even if the check finds differences (-f)', false);
@@ -252,7 +265,7 @@
       row('New start address', target, 'Must be a page start ($xx00). sidreloc moves all code and data and verifies the result by emulation.'),
       row('Zero page', el('div', { class: 'inline' }, zpMode, zp)),
       row('', force.node), row('', strict.node),
-      row('Output file', out),
+      row('Save as', el('div', { class: 'inline', style: 'width:100%' }, out, browse), 'The relocated tune is saved here. Use the button to choose another folder or file name.'),
       log);
     const r = await UI.modal({
       title: 'Relocate SID (sidreloc)', subtitle: 'Moves a SID tune to another memory address.', body, wide: true,
@@ -260,6 +273,8 @@
         label: 'Relocate', primary: true, onClick: async (close, btn) => {
           const v = UI.parseNum(target.value);
           if (isNaN(v) || v < 0x0200 || v > 0xff00 || (v & 0xff)) { UI.toast('Please enter a page address like $c000 or $2000.', 'err'); return false; }
+          if (!out.value.trim()) { UI.toast('Please choose where to save the relocated SID file.', 'err'); return false; }
+          if (out.value.trim().replace(/\\/g, '/').toLowerCase() === input.replace(/\\/g, '/').toLowerCase()) { UI.toast('Please choose a different file - the original tune must not be overwritten.', 'err'); return false; }
           btn.disabled = true; btn.textContent = 'Working...';
           const res = await api.sidreloc({ input, output: out.value, page: (v >> 8).toString(16).padStart(2, '0'), zp: zpMode.value === 'range' ? zp.value : null, keepZp: zpMode.value === 'keep', force: force.box.checked, strict: strict.box.checked });
           btn.disabled = false; btn.textContent = 'Relocate';
@@ -309,13 +324,17 @@
     const body = el('div', null,
       el('div', { class: 'about-head' }, el('span', { class: 'stripes', html: '<i></i><i></i><i></i><i></i><i></i>' }),
         el('div', null, el('h3', { text: `${info.name}` }), el('p', { text: `Version ${info.version}  -  by ${info.author}` }))),
-      el('p', { text: 'An editor for 6502 assembler on the Commodore 64 with live checking, memory map, ACME, Exomizer, sidreloc, VICE and a help center.' }),
-      el('h3', { text: 'Included tools and components' }),
+      el('p', { text: 'An editor for 6502 assembler on the Commodore 64 with live checking, sanity check, memory map, ACME, Exomizer, sidreloc, VICE support, 20 documented example programs and a help center.' }),
+      el('table', { class: 'about-facts' }, ...[
+        ['Name', info.name], ['Version', info.version], ['Author', info.author], ['License', 'MIT (the bundled tools have their own licenses)'],
+        ['Project page', 'https://github.com/IT-DUMMKOPFEN/c64AcmeEditor']
+      ].map(([k, v]) => el('tr', null, el('th', { text: k }), el('td', null, /^https:/.test(v) ? el('a', { href: '#', 'data-url': v, text: v }) : document.createTextNode(v))))),
+      el('h3', { text: 'Tools and components' }),
       el('ul', { class: 'src-list', html: [
         `ACME crossassembler by Marco Baye (GPL) - ${st.acme && st.acme.found ? 'found: ' + UI.esc(st.acme.path) : 'not found'}`,
         `Exomizer by Magnus Lind (free software, see its license) - ${st.exomizer && st.exomizer.found ? 'found' : 'not found'}`,
         `sidreloc by Linus Åkesson (MIT license) - ${st.sidreloc && st.sidreloc.found ? 'found' : 'not found'}`,
-        `VICE - the Versatile Commodore Emulator, by the VICE team (GPL) - ${st.vice && st.vice.found ? 'found' : 'not found'}`,
+        `VICE - the Versatile Commodore Emulator, by the VICE team (GPL) - <b>not included</b>, please install it yourself - ${st.vice && st.vice.found ? 'found: ' + UI.esc(st.vice.path) : 'not found (<a href="#" data-url="https://vice-emu.sourceforge.io/index.html#download">download VICE</a>)'}`,
         'Ace code editor (BSD license)', 'JetBrains Mono font (SIL Open Font License)',
         `Electron ${UI.esc(info.electron)} / Chromium ${UI.esc(info.chrome)} (MIT / BSD)`
       ].map(t => `<li>${t}</li>`).join('') }),
@@ -333,6 +352,7 @@
         ['ACME documentation (QuickRef, AllPOs, Errors, AddrModes, Illegals)', 'https://sourceforge.net/projects/acme-crossass/'],
         ['VICE manual - command line options', 'https://vice-emu.sourceforge.io/'],
         ['Exomizer home page', 'https://bitbucket.org/magli143/exomizer/wiki/Home'],
+        ['Codebase64 - the C64 coding wiki (ideas for the examples 11-20)', 'https://codebase64.net/doku.php?id=start'],
         ['sidreloc manual', 'https://www.linusakesson.net/software/sidreloc/sidreloc.txt'],
         ['High Voltage SID Collection (PSID format)', 'https://www.hvsc.c64.org/'],
         ['Ace editor', 'https://ace.c9.io/'],
