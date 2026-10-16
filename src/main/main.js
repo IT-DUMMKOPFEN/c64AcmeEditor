@@ -314,6 +314,7 @@ function registerIpc() {
     return { path: file, text };
   });
   ipcMain.handle('file:write', (e, file, text) => {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, text, 'utf8');
     settings.addRecent(file); buildMenu();
     return { path: file, mtime: fs.statSync(file).mtimeMs };

@@ -15,6 +15,12 @@ if [ "$TARGET" = "win" ]; then EXT=".exe"; LDSTATIC="-static"; fi
 CC="${CC:-gcc}"
 if [ "$TARGET" = "mac" ]; then CC="${CC:-clang}"; fi
 STATUS=0
+LOG="$(mktemp 2>/dev/null || echo /tmp/buildtools.log)"
+fail() { # name
+  local msg; msg=$(tail -c 900 "$LOG" 2>/dev/null | tr '\r\n' '  ')
+  if [ -n "${GITHUB_ACTIONS:-}" ]; then echo "::warning title=$1 build failed ($TARGET)::$msg"; fi
+  echo "!! $1 build failed"; echo "$msg"; STATUS=1
+}
 
 echo "== ACME"
 if [ -d "$SRC/acme/src" ]; then
@@ -24,8 +30,8 @@ if [ -d "$SRC/acme/src" ]; then
     FILES=""
     for o in $OBJS; do FILES="$FILES ${o%.o}.c"; done
     echo "   $CC -O2 -o acme$EXT $FILES -lm"
-    $CC -O2 -w $LDSTATIC -o "$OUT/acme$EXT" $FILES -lm
-  ) || { echo "!! ACME build failed"; STATUS=1; }
+    $CC -O2 -w $LDSTATIC -o "$OUT/acme$EXT" $FILES -lm >"$LOG" 2>&1
+  ) || fail ACME
 else
   echo "!! ACME sources missing"; STATUS=1
 fi
@@ -38,14 +44,17 @@ if [ -n "$EXOSRC" ] && [ -d "$EXOSRC" ]; then
   (
     cd "$EXOSRC"
     make clean >/dev/null 2>&1 || true
-    make CC="$CC" CFLAGS="-O2 -w -fcommon -std=gnu99" LDFLAGS="-s $LDSTATIC" exomizer$EXT >/dev/null 2>&1 || \
-    make CC="$CC" CFLAGS="-O2 -w -fcommon" LDFLAGS="$LDSTATIC" exomizer$EXT >/dev/null 2>&1 || \
-    make CC="$CC" CFLAGS="-O2 -w -fcommon" LDFLAGS="$LDSTATIC"
+    : > "$LOG"
+    make CC="$CC" CFLAGS="-O2 -w -fcommon -std=gnu99" LDFLAGS="-s $LDSTATIC" exomizer$EXT >>"$LOG" 2>&1 || \
+    make CC="$CC" CFLAGS="-O2 -w -fcommon" LDFLAGS="$LDSTATIC" exomizer >>"$LOG" 2>&1 || \
+    make CC="$CC" CFLAGS="-O2 -w -fcommon" LDFLAGS="$LDSTATIC" >>"$LOG" 2>&1 || \
+    $CC -O2 -w -fcommon $LDSTATIC -o exomizer$EXT $(ls *.c | grep -v -E '^(exobasic|bas_|bprg|test)' ) -lm >>"$LOG" 2>&1
+    ls >>"$LOG" 2>&1
     if [ -f "exomizer$EXT" ]; then cp "exomizer$EXT" "$OUT/"; elif [ -f exomizer ]; then cp exomizer "$OUT/exomizer$EXT"; else exit 1; fi
   ) || {
     PRE=$(find "$SRC/exomizer" -iname 'exomizer.exe' -path '*win32*' | head -1)
     if [ "$TARGET" = "win" ] && [ -n "$PRE" ]; then echo "   using the prebuilt win32 exomizer.exe"; cp "$PRE" "$OUT/exomizer.exe";
-    else echo "!! Exomizer build failed"; STATUS=1; fi
+    else fail Exomizer; fi
   }
 else
   echo "!! Exomizer sources missing"; STATUS=1
@@ -56,9 +65,11 @@ if [ -d "$SRC/sidreloc" ]; then
   (
     cd "$SRC/sidreloc"
     make clean >/dev/null 2>&1 || true
-    make CC="$CC" >/dev/null 2>&1 || $CC -O2 -w $LDSTATIC -o sidreloc$EXT *.c -lm
+    : > "$LOG"
+    make CC="$CC" >>"$LOG" 2>&1 || $CC -O2 -w $LDSTATIC -o sidreloc$EXT *.c -lm >>"$LOG" 2>&1
+    ls >>"$LOG" 2>&1
     if [ -f "sidreloc$EXT" ]; then cp "sidreloc$EXT" "$OUT/"; elif [ -f sidreloc ]; then cp sidreloc "$OUT/sidreloc$EXT"; else exit 1; fi
-  ) || { echo "!! sidreloc build failed"; STATUS=1; }
+  ) || fail sidreloc
 else
   echo "!! sidreloc sources missing"; STATUS=1
 fi
