@@ -5,6 +5,7 @@
 # On Windows run it in an MSYS2 MINGW64 shell.
 set -u
 TARGET="${1:?target win|mac|linux}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SRC="$(cd "${2:-tool-src}" && pwd)"
 OUT="${3:-vendor/tools}"
 mkdir -p "$OUT"
@@ -17,7 +18,7 @@ if [ "$TARGET" = "mac" ]; then CC="${CC:-clang}"; fi
 STATUS=0
 LOG="$(mktemp 2>/dev/null || echo /tmp/buildtools.log)"
 fail() { # name
-  local msg; msg=$(tail -c 900 "$LOG" 2>/dev/null | tr '\r\n' '  ')
+  local msg; msg=$( (grep -i -m6 -B1 'error' "$LOG"; echo ' ... '; tail -c 300 "$LOG") 2>/dev/null | tr '\r\n' '  ' | cut -c1-1500)
   if [ -n "${GITHUB_ACTIONS:-}" ]; then echo "::warning title=$1 build failed ($TARGET)::$msg"; fi
   echo "!! $1 build failed"; echo "$msg"; STATUS=1
 }
@@ -66,7 +67,13 @@ if [ -d "$SRC/sidreloc" ]; then
     cd "$SRC/sidreloc"
     make clean >/dev/null 2>&1 || true
     : > "$LOG"
-    make CC="$CC" >>"$LOG" 2>&1 || $CC -O2 -w $LDSTATIC -o sidreloc$EXT *.c -lm >>"$LOG" 2>&1
+    SHIM=""
+    if [ "$TARGET" = "win" ]; then SHIM="-I$SCRIPT_DIR/win-shim"; fi
+    if [ -n "$SHIM" ]; then
+      $CC -std=gnu99 -O2 -w -DNDEBUG $SHIM $LDSTATIC -o sidreloc$EXT *.c -lm >>"$LOG" 2>&1
+    else
+      make CC="$CC" >>"$LOG" 2>&1 || $CC -std=gnu99 -O2 -w -DNDEBUG -o sidreloc$EXT *.c -lm >>"$LOG" 2>&1
+    fi
     ls >>"$LOG" 2>&1
     if [ -f "sidreloc$EXT" ]; then cp "sidreloc$EXT" "$OUT/"; elif [ -f sidreloc ]; then cp sidreloc "$OUT/sidreloc$EXT"; else exit 1; fi
   ) || fail sidreloc

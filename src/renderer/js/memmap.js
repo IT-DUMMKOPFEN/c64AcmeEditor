@@ -28,10 +28,10 @@
     [0xe000, 0xffff, 'KERNAL ROM (RAM underneath)']
   ];
   const COLUMNS = [
-    ['Zero page, stack, screen', 'sys'], ['BASIC RAM', 'ram'], ['BASIC RAM', 'ram'], ['BASIC RAM', 'ram'],
+    ['ZP, stack, screen', 'sys'], ['BASIC RAM', 'ram'], ['BASIC RAM', 'ram'], ['BASIC RAM', 'ram'],
     ['BASIC RAM', 'ram'], ['BASIC RAM', 'ram'], ['BASIC RAM', 'ram'], ['BASIC RAM', 'ram'],
     ['BASIC RAM', 'ram'], ['BASIC RAM', 'ram'], ['BASIC ROM', 'rom'], ['BASIC ROM', 'rom'],
-    ['Free RAM', 'ram'], ['I/O, char ROM', 'io'], ['KERNAL ROM', 'rom'], ['KERNAL ROM', 'rom']
+    ['Free RAM', 'ram'], ['I/O area', 'io'], ['KERNAL ROM', 'rom'], ['KERNAL ROM', 'rom']
   ];
   const KIND_NAMES = { code: 'Code', data: 'Data', bin: 'Binary include', sid: 'SID music', gfx: 'Graphics (.kla)' };
 

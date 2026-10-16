@@ -8,6 +8,7 @@ mkdir -p "$OUT"
 cd "$OUT"
 
 EXO_VERSION="${EXO_VERSION:-3.1.2}"
+note() { if [ -n "${GITHUB_ACTIONS:-}" ]; then echo "::notice title=sources::$*"; else echo "   $*"; fi; }
 SIDRELOC_VERSION="${SIDRELOC_VERSION:-1.0}"
 
 echo "== ACME (official SVN trunk on SourceForge)"
@@ -20,7 +21,7 @@ if [ ! -f acme/src/acme.c ]; then
   rm -rf acme
   git clone --depth 1 https://github.com/meonwax/acme.git acme
 fi
-grep -h 'define RELEASE' acme/src/version.h || true
+note "ACME $(grep -h 'define RELEASE' acme/src/version.h | head -1)"
 
 echo "== Exomizer $EXO_VERSION"
 rm -rf exomizer exo.zip
@@ -36,6 +37,7 @@ if [ -z "$(find exomizer -path '*/src/Makefile' 2>/dev/null | head -1)" ]; then
   }
 fi
 rm -f exo.zip
+note "Exomizer: $(ls exomizer | tr '\n' ' ')"
 
 echo "== sidreloc $SIDRELOC_VERSION"
 rm -rf sidreloc sidreloc.tgz
@@ -43,5 +45,6 @@ if curl -fsSL --retry 3 -o sidreloc.tgz "https://hd0.linusakesson.net/files/sidr
   mkdir -p sidreloc && tar xzf sidreloc.tgz -C sidreloc --strip-components=1 && rm -f sidreloc.tgz
 fi
 
+note "sidreloc: $(ls sidreloc 2>/dev/null | tr '\n' ' ')"
 echo "== done"
 ls -la
