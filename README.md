@@ -156,6 +156,8 @@ src/renderer/      user interface
   js/opcodes.js    6502/6510 instruction set data
   js/help-*.js     help center
 examples/          example programs (+ demo tune and demo picture they use)
+prebuilt/          ready-built ACME, Exomizer, sidreloc for mac-arm64,
+                   win-x64 and linux-x64 (taken from the 0.2b builds)
 scripts/           download/build scripts for ACME, Exomizer, sidreloc,
   music/           source of the demo tune (assembles to a .sid, not a PRG)
 .github/workflows  builds for Windows, macOS (Apple Silicon) and Linux
