@@ -67,14 +67,14 @@ by **IT-Dummköpfe** - MIT license
 
 ## Download
 
-Ready-to-use builds are created by GitHub Actions for every release:
-**Releases** page of this repository.
+Ready-to-use builds are made with `scripts/package/build.py` (see
+*Packaging without GitHub Actions* below).
 
 | System | File | Included tools |
 |---|---|---|
 | Windows 10/11 (x64) | `C64-ACME-EDITOR-0.2b-Windows-Setup.exe` or `...-win-x64.zip` (portable) | ACME, Exomizer, sidreloc |
-| macOS (Apple Silicon) | `C64-ACME-EDITOR-0.2b-macOS-AppleSilicon.dmg` | ACME, Exomizer, sidreloc |
-| Linux (x64) | `.AppImage` or `.deb` | ACME, Exomizer, sidreloc |
+| macOS (Apple Silicon) | `C64-ACME-EDITOR-0.2b-macOS-AppleSilicon.zip` (unzip, move the app to *Applications*) | ACME, Exomizer, sidreloc |
+| Linux (x64) | `...-linux-x86_64.AppImage` or `...-linux-amd64.deb` | ACME, Exomizer, sidreloc |
 
 **VICE is not included** (since 0.2b). Install it yourself to run your
 programs - see below.
@@ -134,6 +134,22 @@ bash scripts/build-tools.sh linux tool-src        # or: mac / win  -> vendor/too
 npm start                                         # run the editor
 npm run dist                                      # create installers in dist/
 ```
+
+### Packaging without GitHub Actions
+
+`scripts/package/build.py` builds all apps on a Linux machine - no Mac, no
+Wine, no electron-builder needed. It uses the official Electron release zips,
+the tools in `prebuilt/` and a few helpers from GitHub releases
+(`rcodesign` for the ad-hoc macOS signature, NSIS `makensis`, `appimagetool`
+and the AppImage runtime):
+
+```bash
+python3 scripts/package/build.py --downloads DL --tools TOOLS --out dist-local win mac linux
+```
+
+Results: Windows installer + portable zip, macOS (Apple Silicon) zip with an
+ad-hoc signed app, Linux AppImage + .deb. The script's header lists the exact
+files it expects in `DL` and `TOOLS`.
 
 Tests (the built-in assembler model is compared with the real ACME on all
 examples, plus error detection and sanity check cases):
