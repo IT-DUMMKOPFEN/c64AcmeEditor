@@ -416,6 +416,67 @@
     } catch (e) { UI.toast('Could not open the example: ' + e.message, 'err'); }
   }
 
+  // ====================================================== snippet library
+  // read-only Ace viewer with the editor's mode and theme (snippet preview)
+  App.makeViewer = (el) => {
+    const v = ace.edit(el, {
+      mode: acmeMode, readOnly: true,
+      theme: App.settings.theme === 'day' ? 'ace/theme/c64-day' : 'ace/theme/c64-night',
+      fontSize: Math.max(11, (App.settings.fontSize || 15) - 2), fontFamily: "'JetBrains Mono', monospace",
+      showPrintMargin: false, highlightActiveLine: false, showFoldWidgets: false, useWorker: false,
+      tabSize: App.settings.tabSize || 8
+    });
+    v.renderer.$cursorLayer.element.style.display = 'none';
+    return v;
+  };
+
+  // program snippets open like examples: includes (data/...) are found in the
+  // snippet folder and copied next to the file when it is saved
+  App.openSnippet = (sn, text, dir) => {
+    const t = newTab({ text, title: sn.id + '.asm', baseDir: dir, exampleBase: dir });
+    setDirty(t, false);
+    UI.toast('Snippet opened as a new file. Press F5 to run it.', 'ok');
+  };
+
+  // a routine needs a program around it: in an empty file a BASIC start
+  // line comes first
+  const PROGRAM_START = `; ---- BASIC start line: 10 SYS 2061 ----
+        * = $0801
+        !word +, 10
+        !byte $9e
+        !text "2061"
+        !byte 0
++       !word 0
+start
+        ; your program here - call the routines below with JSR
+        rts
+
+`;
+  App.insertSnippet = (sn, text) => {
+    if (!App.active) newTab({});
+    const ed = App.editor;
+    const doc = ed.session.getDocument();
+    let block = text.replace(/\s+$/, '') + '\n\n';
+    let row;
+    if (!ed.session.getValue().trim()) {
+      block = PROGRAM_START + block;
+      ed.session.setValue('');
+      row = 0;
+    } else {
+      // insert whole lines: at an empty cursor line, otherwise below it
+      const pos = ed.getCursorPosition();
+      row = ed.session.getLine(pos.row).trim() === '' ? pos.row : pos.row + 1;
+      if (row > doc.getLength()) row = doc.getLength();
+    }
+    ed.session.insert({ row, column: 0 }, block);
+    const end = row + block.split('\n').length - 1;
+    ed.clearSelection();
+    ed.moveCursorTo(end, 0);
+    ed.scrollToLine(row, false, false, () => {});
+    ed.focus();
+    UI.toast(`Snippet "${sn.title}" inserted.`, 'ok');
+  };
+
   async function onRequestClose() {
     const dirty = App.tabs.filter(t => t.dirty);
     if (dirty.length) {
@@ -1113,6 +1174,7 @@ picture !bin "${rel}",, 2       ; skip the 2-byte load address
 
       case 'examples:gallery': await Dialogs.examples(); break;
       case 'example:open': await openExample(arg); break;
+      case 'snippets:open': await Dialogs.snippets(); break;
 
       case 'view:theme': applyTheme(App.settings.theme === 'day' ? 'night' : 'day', true); break;
       case 'view:memmap': togglePanel('memmap'); break;

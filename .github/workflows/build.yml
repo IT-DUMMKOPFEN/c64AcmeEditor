@@ -130,7 +130,7 @@ jobs:
     needs: [ build, test ]
     runs-on: ubuntu-22.04
     env:
-      APP_TAG: v0.2b
+      APP_TAG: v0.3b
     steps:
       - uses: actions/download-artifact@v4
         with: { path: artifacts }
@@ -142,19 +142,19 @@ jobs:
           name: C64 ACME EDITOR ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || env.APP_TAG }}
           prerelease: true
           body: |
-            C64 ACME EDITOR 0.2b by IT-Dummköpfe.
+            C64 ACME EDITOR 0.3b by IT-Dummköpfe.
 
             Downloads:
-            * **Windows**: `C64-ACME-EDITOR-0.2b-Windows-Setup.exe` (installer) or the `win-x64.zip` (portable)
-            * **macOS (Apple Silicon)**: `C64-ACME-EDITOR-0.2b-macOS-AppleSilicon.dmg`
+            * **Windows**: `C64-ACME-EDITOR-0.3b-Windows-Setup.exe` (installer) or the `win-x64.zip` (portable)
+            * **macOS (Apple Silicon)**: `C64-ACME-EDITOR-0.3b-macOS-AppleSilicon.dmg`
             * **Linux**: `.AppImage` or `.deb`
 
             ACME, Exomizer and sidreloc are included. **VICE is not included any more** - please install it yourself
             (https://vice-emu.sourceforge.io/ - Linux: `sudo apt install vice` or Flatpak `net.sf.VICE`, macOS: VICE .dmg or `brew install vice`).
             The editor finds an installed VICE automatically, or set the path in Settings > Tools.
 
-            New in 0.2b: 10 new documented examples (11-20, ideas from Codebase64), Info button, version and author on the
-            welcome page, folder/file chooser when relocating a SID, the demo tune source is no longer listed as an example.
+            New in 0.3b: snippet library with 56 documented code snippets (Ctrl+I) and an intro template
+            (Koala picture, SID music, sprite scroller in the open border).
 
             See the README for first-start notes (unsigned app on macOS / Windows SmartScreen).
           files: |

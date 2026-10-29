@@ -317,6 +317,118 @@
     if (r === 'open' && chosen) await App.openExample(chosen);
   }
 
+  // ======================================================= snippet library
+  async function snippets() {
+    const { dir, index } = await api.snippets();
+    const all = index.snippets || [];
+    const KIND = { routine: 'routine', program: 'program', example: 'template' };
+    const search = el('input', { type: 'search', class: 'sn-search', placeholder: 'Search: joystick, irq, sprite, scroller, koala ...', 'aria-label': 'Search snippets' });
+    const list = el('div', { class: 'sn-list', role: 'listbox', tabindex: '0', 'aria-label': 'Snippets' });
+    const head = el('div', { class: 'sn-head' });
+    const codeBox = el('div', { class: 'sn-code' });
+    const body = el('div', { class: 'sn-wrap' },
+      el('div', { class: 'sn-left' }, search, list),
+      el('div', { class: 'sn-right' }, head, codeBox));
+    let viewer = null, current = null, items = [];
+    const texts = {};
+
+    const loadText = async (sn) => {
+      if (texts[sn.id] != null) return texts[sn.id];
+      const base = sn.kind === 'example' ? (await api.examples()).dir : dir;
+      const f = await api.readFile(App.path.join(base, sn.file), { noRecent: true });
+      texts[sn.id] = f.text;
+      return f.text;
+    };
+
+    const doAction = async (sn, action) => {
+      const text = await loadText(sn);
+      UI.modalApi.close('done');
+      if (sn.kind === 'example') await App.openExample(sn.file);
+      else if (action === 'open') App.openSnippet(sn, text, dir);
+      else App.insertSnippet(sn, text);
+    };
+    const primaryAction = (sn) => (sn.kind === 'routine' ? 'insert' : 'open');
+
+    const select = async (sn, focusList) => {
+      current = sn;
+      for (const it of items) it.node.classList.toggle('active', it.sn === sn);
+      const act = items.find(it => it.sn === sn);
+      if (act) { act.node.scrollIntoView({ block: 'nearest' }); act.node.setAttribute('aria-selected', 'true'); }
+      head.innerHTML = '';
+      const btns = el('div', { class: 'sn-actions' });
+      const mk = (label, action, primary) => {
+        const b = el('button', { class: 'btn small' + (primary ? ' primary' : ''), text: label });
+        b.addEventListener('click', () => doAction(sn, action));
+        btns.appendChild(b);
+      };
+      if (sn.kind === 'routine') { mk('Insert at cursor', 'insert', true); mk('Open as new file', 'open'); }
+      else if (sn.kind === 'program') { mk('Open as new file', 'open', true); mk('Insert at cursor', 'insert'); }
+      else mk('Open the template', 'open', true);
+      const hint = sn.kind === 'routine' ? 'Routine: insert it into your program (it has no BASIC start line).'
+        : sn.kind === 'program' ? 'Complete program: open it as a new file and press F5.'
+          : 'Complete program with picture and music (example ' + sn.file.slice(0, 2) + ').';
+      head.append(el('div', { class: 'sn-title' }, el('h3', { text: sn.title }), el('span', { class: 'sn-badge ' + sn.kind, text: KIND[sn.kind] })),
+        el('p', { class: 'sn-desc', text: sn.description }), el('p', { class: 'sn-hint', text: hint }), btns);
+      const text = await loadText(sn);
+      if (current !== sn) return;
+      if (viewer) { viewer.session.setValue(text); viewer.scrollToLine(0, false, false, () => {}); }
+      if (focusList) list.focus();
+    };
+
+    const render = () => {
+      const words = search.value.toLowerCase().split(/\s+/).filter(Boolean);
+      const match = (sn) => {
+        const hay = (sn.title + ' ' + sn.description + ' ' + sn.category + ' ' + sn.id + ' ' + sn.kind).toLowerCase();
+        return words.every(w => hay.includes(w));
+      };
+      list.innerHTML = '';
+      items = [];
+      for (const cat of index.categories) {
+        const group = all.filter(sn => sn.category === cat && match(sn));
+        if (!group.length) continue;
+        list.appendChild(el('div', { class: 'sn-cat', text: cat }));
+        for (const sn of group) {
+          const node = el('div', { class: 'sn-item', role: 'option' },
+            el('span', { class: 'sn-name', text: sn.title }), el('span', { class: 'sn-badge ' + sn.kind, text: KIND[sn.kind] }));
+          node.addEventListener('click', () => select(sn));
+          node.addEventListener('dblclick', () => doAction(sn, primaryAction(sn)));
+          list.appendChild(node);
+          items.push({ sn, node });
+        }
+      }
+      if (!items.length) list.appendChild(el('p', { class: 'sn-empty', text: 'No snippet found.' }));
+      if (items.length && !items.some(it => it.sn === current)) select(items[0].sn);
+      else if (current) for (const it of items) it.node.classList.toggle('active', it.sn === current);
+    };
+
+    const move = (d) => {
+      const i = items.findIndex(it => it.sn === current);
+      const n = items[Math.max(0, Math.min(items.length - 1, i + d))];
+      if (n) select(n.sn);
+    };
+    const keys = (e) => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+      else if (e.key === 'Enter' && current) { e.preventDefault(); doAction(current, primaryAction(current)); }
+    };
+    search.addEventListener('input', render);
+    search.addEventListener('keydown', keys);
+    list.addEventListener('keydown', keys);
+
+    await UI.modal({
+      title: 'Snippet library', subtitle: `${all.length} documented code snippets. Routines are inserted at the cursor, programs open as a new file.`,
+      body, wide: true,
+      buttons: [{ label: 'Close', value: null }],
+      onOpen: ({ box }) => {
+        box.classList.add('snippets');
+        viewer = App.makeViewer(codeBox);
+        render();
+        search.focus();
+      }
+    });
+    if (viewer) viewer.destroy();
+  }
+
   // ================================================================ about
   async function about() {
     const info = App.info;
@@ -324,7 +436,7 @@
     const body = el('div', null,
       el('div', { class: 'about-head' }, el('span', { class: 'stripes', html: '<i></i><i></i><i></i><i></i><i></i>' }),
         el('div', null, el('h3', { text: `${info.name}` }), el('p', { text: `Version ${info.version}  -  by ${info.author}` }))),
-      el('p', { text: 'An editor for 6502 assembler on the Commodore 64 with live checking, sanity check, memory map, ACME, Exomizer, sidreloc, VICE support, 20 documented example programs and a help center.' }),
+      el('p', { text: 'An editor for 6502 assembler on the Commodore 64 with live checking, sanity check, memory map, ACME, Exomizer, sidreloc, VICE support, 21 documented example programs, a library of 56 code snippets and a help center.' }),
       el('table', { class: 'about-facts' }, ...[
         ['Name', info.name], ['Version', info.version], ['Author', info.author], ['License', 'MIT (the bundled tools have their own licenses)'],
         ['Project page', 'https://github.com/IT-DUMMKOPFEN/c64AcmeEditor']
@@ -364,5 +476,5 @@
     await UI.modal({ title: 'Info', body, wide: true });
   }
 
-  window.Dialogs = { settings, savePrg, packFile, sidInfo, sidReloc, examples, about };
+  window.Dialogs = { settings, savePrg, packFile, sidInfo, sidReloc, examples, snippets, about };
 })();

@@ -167,7 +167,8 @@
         if (s.type === 'RSID') add('info', b.loc, 'This is an RSID tune.', 'RSID tunes expect a real C64 environment and often install their own interrupts.');
       }
       if (b.kla && b.addr != null && b.skip !== 2 && b.size >= 10001) add('warning', b.loc, 'Koala files start with a 2-byte load address.', `Use: !bin "${b.name}",, 2`);
-      if (b.kla && b.addr != null && (b.addr & 0x1fff) !== 0) add('warning', b.loc, `Bitmap at ${h4(b.addr)} is not on an 8 KB boundary.`, 'The VIC-II can only show bitmaps at $0000 or $2000 inside its 16 KB bank (e.g. $2000, $6000, $a000, $e000).');
+      // (only for the bitmap part: screen/colour data may be included elsewhere)
+      if (b.kla && b.addr != null && (b.skip || 0) <= 2 && (b.addr & 0x1fff) !== 0) add('warning', b.loc, `Bitmap at ${h4(b.addr)} is not on an 8 KB boundary.`, 'The VIC-II can only show bitmaps at $0000 or $2000 inside its 16 KB bank (e.g. $2000, $6000, $a000, $e000).');
     }
 
     // ---------------------------------------------------------- VIC bank 0 char ROM shadow

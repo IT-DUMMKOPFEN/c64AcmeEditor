@@ -1,0 +1,473 @@
+{
+ "categories": [
+  "Templates",
+  "Basics",
+  "Interrupts",
+  "Input",
+  "Text",
+  "Graphics",
+  "Sprites",
+  "Sound",
+  "Effects",
+  "Maths & Tools",
+  "Disk"
+ ],
+ "snippets": [
+  {
+   "id": "intro_template",
+   "title": "Intro: Koala picture + SID music + sprite scroller in the open border",
+   "category": "Templates",
+   "kind": "example",
+   "file": "21_intro_template.asm",
+   "description": "A complete intro to start your own: BASIC start line, Koala picture, SID music and a sprite scroller with the normal C64 font in the opened lower border. Replace picture, tune and text."
+  },
+  {
+   "id": "basic_start_black",
+   "title": "BASIC start line + black screen",
+   "category": "Basics",
+   "kind": "program",
+   "file": "basics/basic_start_black.asm",
+   "description": "The usual start of every C64 program written in assembler: * a BASIC line \"10 SYS 2061\", so the program starts with RUN * border and background black, screen cleared, text colour set * a main loop that waits for SPACE and then returns to BASIC"
+  },
+  {
+   "id": "clear_screen",
+   "title": "Fast clear screen (with a colour)",
+   "category": "Basics",
+   "kind": "routine",
+   "file": "basics/clear_screen.asm",
+   "description": "Fills the 1000 bytes of the screen with a character and the colour RAM with a colour. Faster than the KERNAL ($e544) and you choose the colour. Each loop pass writes 4 blocks of 250 bytes (4 x 250 = 1000)."
+  },
+  {
+   "id": "return_to_basic",
+   "title": "Clean return to BASIC",
+   "category": "Basics",
+   "kind": "routine",
+   "file": "basics/return_to_basic.asm",
+   "description": "Ends a program and brings the C64 back into a normal state: * raster interrupts off, KERNAL interrupt and CIA timer back on * ROMs on ($01 = $37), VIC bank 0, text mode, default charset * sprites off, SID silent, colours as after power-on * screen cleared, then back to BASIC (READY.)"
+  },
+  {
+   "id": "rom_off",
+   "title": "Switch off BASIC and KERNAL ROM (with NMI blocker)",
+   "category": "Basics",
+   "kind": "routine",
+   "file": "basics/rom_off.asm",
+   "description": "The processor port $01 decides what the CPU sees at $a000-$bfff (BASIC), $d000-$dfff (I/O or character ROM) and $e000-$ffff (KERNAL):"
+  },
+  {
+   "id": "wait_frame",
+   "title": "Wait for the next frame (raster line)",
+   "category": "Basics",
+   "kind": "routine",
+   "file": "basics/wait_frame.asm",
+   "description": "The simplest way to time a program: wait until the VIC-II has drawn a certain raster line. Called once per main loop, your code runs exactly 50 times per second (PAL) - smooth movement without interrupts."
+  },
+  {
+   "id": "irq_chain",
+   "title": "Several raster IRQs per frame (IRQ chain)",
+   "category": "Interrupts",
+   "kind": "routine",
+   "file": "interrupts/irq_chain.asm",
+   "description": "One interrupt handler, several raster lines: after each interrupt the next line from a table is written to $d012. Here every zone gets its own border and background colour - change the tables to your needs (for example: split screen text/bitmap, scroller only in the last rows, music player in the last zone)."
+  },
+  {
+   "id": "irq_kernal",
+   "title": "Raster IRQ initialisation (with KERNAL)",
+   "category": "Interrupts",
+   "kind": "routine",
+   "file": "interrupts/irq_kernal.asm",
+   "description": "A raster interrupt calls your routine every frame when the VIC-II reaches a certain raster line - the base of music players, scrollers, raster bars."
+  },
+  {
+   "id": "irq_no_kernal",
+   "title": "Raster IRQ without KERNAL ($fffe)",
+   "category": "Interrupts",
+   "kind": "routine",
+   "file": "interrupts/irq_no_kernal.asm",
+   "description": "With BASIC and KERNAL ROM switched off ($01 = $35), the CPU takes the interrupt address directly from $fffe/$ffff (RAM). This is faster (no KERNAL code in between) and gives you 16 KB more RAM - the usual setup in demos and games."
+  },
+  {
+   "id": "irq_stable",
+   "title": "Stable raster IRQ (double IRQ)",
+   "category": "Interrupts",
+   "kind": "routine",
+   "file": "interrupts/irq_stable.asm",
+   "description": "A normal raster interrupt starts with a \"jitter\" of up to 7 cycles: the CPU first finishes its current instruction. For effects that change colours in the middle of a line this jitter is visible as flickering edges. The double IRQ removes it:"
+  },
+  {
+   "id": "irq_timer",
+   "title": "Timer interrupt with any frequency (CIA 1)",
+   "category": "Interrupts",
+   "kind": "routine",
+   "file": "interrupts/irq_timer.asm",
+   "description": "The KERNAL already uses timer A of CIA 1 for its interrupt (60 times per second). By changing the timer value you get interrupts at any rate - independent of the raster beam. Typical use: music that needs 100 or 200 calls per second (\"2x / 4x speed\"), or the same speed on PAL and NTSC."
+  },
+  {
+   "id": "joystick",
+   "title": "Read the joystick (port 2 and port 1)",
+   "category": "Input",
+   "kind": "routine",
+   "file": "input/joystick.asm",
+   "description": "The joystick ports are read from CIA 1: port 2 = $dc00,  port 1 = $dc01 bit 0 = up, 1 = down, 2 = left, 3 = right, 4 = fire A bit is 0 when the direction / button is PRESSED (inverted logic)."
+  },
+  {
+   "id": "key_getin",
+   "title": "Read keys with the KERNAL (GETIN)",
+   "category": "Input",
+   "kind": "routine",
+   "file": "input/key_getin.asm",
+   "description": "The KERNAL interrupt scans the keyboard 60 times per second and puts the keys into a buffer (10 keys). GETIN ($ffe4) takes the next key out of the buffer: A = PETSCII code, or 0 if no key was pressed."
+  },
+  {
+   "id": "key_matrix",
+   "title": "Check a key directly in the keyboard matrix (no KERNAL)",
+   "category": "Input",
+   "kind": "routine",
+   "file": "input/key_matrix.asm",
+   "description": "The 64 keys are wired as an 8 x 8 matrix on CIA 1: write a column mask to $dc00 (0 bit = this column is selected) read the rows from $dc01   (0 bit = key pressed) This works with the KERNAL switched off, finds several keys at the same time (for games: fire + direction on the keyboard) and is fast."
+  },
+  {
+   "id": "wait_space",
+   "title": "\"Press SPACE to continue\"",
+   "category": "Input",
+   "kind": "routine",
+   "file": "input/wait_space.asm",
+   "description": "Waits until SPACE is pressed and released again. Reads the keyboard matrix directly, so it also works when the KERNAL is switched off or interrupts are disabled. Waiting for the release prevents that the same key press is seen again by the next part of your program."
+  },
+  {
+   "id": "charset_copy",
+   "title": "Own character set (copy the ROM font and change characters)",
+   "category": "Text",
+   "kind": "routine",
+   "file": "text/charset_copy.asm",
+   "description": "The VIC-II can read the character shapes from RAM. $d018 bits 1-3 select the charset address inside the VIC bank (in steps of 2 KB): $d018 = (screen / $400) * 16 + (charset / $800) * 2 screen $0400, charset $3000:  $d018 = $1c"
+  },
+  {
+   "id": "color_flash",
+   "title": "Colour flashing / colour cycling of a text row",
+   "category": "Text",
+   "kind": "routine",
+   "file": "text/color_flash.asm",
+   "description": "Makes a text row shine: the colour RAM of the row is filled with colours from a table, and the table position moves every frame. The characters themselves never change - only $d800-$dbe7 is written."
+  },
+  {
+   "id": "print_at",
+   "title": "Print text at a screen position (direct, with colour)",
+   "category": "Text",
+   "kind": "routine",
+   "file": "text/print_at.asm",
+   "description": "Writes a text directly into the screen memory and its colour into the colour RAM - fast, and it works without the KERNAL. The text is stored with !scr (screen codes, not PETSCII!) and ends with 0."
+  },
+  {
+   "id": "print_kernal",
+   "title": "Print text with the KERNAL (CHROUT + PLOT)",
+   "category": "Text",
+   "kind": "routine",
+   "file": "text/print_kernal.asm",
+   "description": "The KERNAL prints PETSCII text like BASIC's PRINT: control codes work inside the text - colours, RVS ON, clear screen, cursor movement: 147 clear screen   13 RETURN     18 RVS on    146 RVS off 5 white  28 red  30 green  31 blue  129 orange  144 black  149 brown 150 light red  151 dark grey  152 grey  153 light green 154 light blue  155 light grey  156 purple  158 yellow  159 cyan"
+  },
+  {
+   "id": "print_numbers",
+   "title": "Print numbers: hex, decimal (8 + 16 bit), binary",
+   "category": "Text",
+   "kind": "routine",
+   "file": "text/print_numbers.asm",
+   "description": "Writes a number directly into the screen memory at a pointer. num_ptr  ($fb/$fc) = where the digits go (screen address)"
+  },
+  {
+   "id": "scroller_simple",
+   "title": "Simple text scroller (bottom row, character by character)",
+   "category": "Text",
+   "kind": "program",
+   "file": "text/scroller_simple.asm",
+   "description": "The classic \"Laufschrift\": a text runs through the bottom screen row from right to left. Every few frames all 39 characters move one position to the left and the next character of the text appears at the right edge."
+  },
+  {
+   "id": "scroller_smooth",
+   "title": "Smooth scroller (bottom row, pixel by pixel)",
+   "category": "Text",
+   "kind": "program",
+   "file": "text/scroller_smooth.asm",
+   "description": "A text that moves smoothly through the bottom screen row, while the rest of the screen stays still."
+  },
+  {
+   "id": "bitmap_mode",
+   "title": "Bitmap mode on / off and clear the bitmap",
+   "category": "Graphics",
+   "kind": "routine",
+   "file": "graphics/bitmap_mode.asm",
+   "description": "bitmap_on    hires bitmap at $2000, colours from the screen RAM $0400 (high nibble = pixel colour, low nibble = background) bitmap_off   back to the text screen bitmap_clear sets all 8000 bytes of the bitmap to 0 and the colours to BM_COLORS"
+  },
+  {
+   "id": "plot",
+   "title": "Plot a pixel (hires bitmap, 320 x 200)",
+   "category": "Graphics",
+   "kind": "routine",
+   "file": "graphics/plot.asm",
+   "description": "The bitmap is built like the text screen: 8 bytes on top of each other form one 8x8 cell, 40 cells form a row of 320 bytes. Pixel (x, y) is in"
+  },
+  {
+   "id": "show_artstudio",
+   "title": "Show an Art Studio picture (.art / .aas, hires)",
+   "category": "Graphics",
+   "kind": "program",
+   "file": "graphics/show_artstudio.asm",
+   "description": "OCP Art Studio saves hires pictures (320 x 200 pixels, 2 colours per 8x8 cell). The file (9009 bytes + load address):"
+  },
+  {
+   "id": "show_doodle",
+   "title": "Show a Doodle picture (.dd, hires)",
+   "category": "Graphics",
+   "kind": "program",
+   "file": "graphics/show_doodle.asm",
+   "description": "Doodle saves hires pictures exactly as they are in memory (9218 bytes):"
+  },
+  {
+   "id": "show_koala",
+   "title": "Show a Koala Painter picture (.kla / .koa)",
+   "category": "Graphics",
+   "kind": "program",
+   "file": "graphics/show_koala.asm",
+   "description": "Koala Painter is the most common C64 multicolour picture format (160 x 200 pixels, 4 colours per 8x8 cell). The file (10003 bytes):"
+  },
+  {
+   "id": "show_ocp",
+   "title": "Show an Advanced Art Studio picture (.ocp / .mpic, multicolour)",
+   "category": "Graphics",
+   "kind": "program",
+   "file": "graphics/show_ocp.asm",
+   "description": "OCP Advanced Art Studio saves multicolour pictures like Koala Painter, but in a different order (10018 bytes with load address):"
+  },
+  {
+   "id": "show_raw",
+   "title": "Show a picture from separate raw files (bitmap, screen, colours)",
+   "category": "Graphics",
+   "kind": "program",
+   "file": "graphics/show_raw.asm",
+   "description": "Many converters (PC tools like \"SPOT\", \"Retropixels\", \"png2prg\" or your own scripts) save the parts of a picture as separate files without a load address. With !bin they are placed directly where the VIC-II reads them - here in VIC bank 1:"
+  },
+  {
+   "id": "vic_bank",
+   "title": "VIC bank and memory setup (macro)",
+   "category": "Graphics",
+   "kind": "routine",
+   "file": "graphics/vic_bank.asm",
+   "description": "The VIC-II sees only 16 KB at a time (\"bank\"): bank 0 $0000-$3fff   $dd00 bits 0-1 = %11 bank 1 $4000-$7fff                 = %10 bank 2 $8000-$bfff                 = %01 bank 3 $c000-$ffff                 = %00 In banks 0 and 2 the VIC sees the character ROM at +$1000-$1fff (so no graphics there). Banks 1 and 3 are completely free RAM."
+  },
+  {
+   "id": "sprite_anim",
+   "title": "Sprite animation (switch the sprite pointer)",
+   "category": "Sprites",
+   "kind": "program",
+   "file": "sprites/sprite_anim.asm",
+   "description": "An animation is a series of sprite images (frames) in memory, one after the other in 64-byte blocks. To animate, only the sprite pointer is changed - no copying of graphics."
+  },
+  {
+   "id": "sprite_collision",
+   "title": "Sprite collisions",
+   "category": "Sprites",
+   "kind": "routine",
+   "file": "sprites/sprite_collision.asm",
+   "description": "The VIC-II detects collisions pixel exactly: $d01e  sprite - sprite:      bit n = 1 if sprite n touched another sprite $d01f  sprite - background:  bit n = 1 if sprite n touched a set pixel of the text / bitmap (\"foreground\" colours) Reading the register clears it. The bits are set while the sprites are drawn - read them once per frame, below the screen."
+  },
+  {
+   "id": "sprite_joystick",
+   "title": "Move a sprite with the joystick (port 2)",
+   "category": "Sprites",
+   "kind": "program",
+   "file": "sprites/sprite_joystick.asm",
+   "description": "Combines \"Read the joystick\" and \"Sprite X position 0-511\": the sprite moves with the joystick in port 2 and stays inside the visible screen. The fire button changes its colour (once per press)."
+  },
+  {
+   "id": "sprite_settings",
+   "title": "Sprite settings: multicolour, expand, priority",
+   "category": "Sprites",
+   "kind": "routine",
+   "file": "sprites/sprite_settings.asm",
+   "description": "All these registers have one bit per sprite (bit 0 = sprite 0 ...):"
+  },
+  {
+   "id": "sprite_show",
+   "title": "Show a sprite (position, colour, pointer)",
+   "category": "Sprites",
+   "kind": "program",
+   "file": "sprites/sprite_show.asm",
+   "description": "A sprite is a 24 x 21 pixel image (63 bytes, 3 bytes per row) that the VIC-II draws over the screen at any position. 8 sprites exist (0-7)."
+  },
+  {
+   "id": "sprite_x16",
+   "title": "Sprite X position 0-511 (the 9th bit in $d010)",
+   "category": "Sprites",
+   "kind": "routine",
+   "file": "sprites/sprite_x16.asm",
+   "description": "The screen is 320 pixels wide (+ border), but a byte only goes to 255. The 9th bit of all 8 sprite X positions is collected in $d010 (bit n = sprite n). This routine sets a 16-bit X position correctly."
+  },
+  {
+   "id": "drone",
+   "title": "Intro drone (\"Brummen\" instead of music)",
+   "category": "Sound",
+   "kind": "program",
+   "file": "sound/drone.asm",
+   "description": "Many crack intros had no music, just a deep, wobbling hum: two low sawtooth tones that are slightly out of tune (they \"beat\" against each other) and the SID filter that slowly opens and closes - with high resonance it sounds like a vacuum cleaner from outer space."
+  },
+  {
+   "id": "sid_music",
+   "title": "Play SID music in a raster interrupt",
+   "category": "Sound",
+   "kind": "program",
+   "file": "sound/sid_music.asm",
+   "description": "A .sid file contains a music program with two entry points: init  ($1000 here)  call once, A = song number - 1 play  ($1003 here)  call 50 times per second (once per frame) The file starts with a header (PSID, $7c bytes) and a 2-byte load address. !bin skips both ($7e bytes) and puts the music at its load address. The SID info dialog (Tools > SID Info) shows the addresses of your tune - they are different for every tune!"
+  },
+  {
+   "id": "sid_random",
+   "title": "Random numbers from the SID (noise of voice 3)",
+   "category": "Sound",
+   "kind": "routine",
+   "file": "sound/sid_random.asm",
+   "description": "Voice 3 of the SID can be read: $d41b returns the upper 8 bits of its oscillator. With the noise waveform and a high frequency this is a good source of random numbers - and it costs no CPU time. The gate stays off, so nothing is heard (and $d418 bit 7 = 1 would even disconnect voice 3 from the output completely)."
+  },
+  {
+   "id": "sid_reset",
+   "title": "Reset / silence the SID",
+   "category": "Sound",
+   "kind": "routine",
+   "file": "sound/sid_reset.asm",
+   "description": "Writes 0 to all 25 SID registers ($d400-$d418): all voices off, filter off, volume 0. Use it after music or sound effects, before returning to BASIC, or before starting a new tune."
+  },
+  {
+   "id": "sound_effects",
+   "title": "Sound effects: shot, explosion, beep",
+   "category": "Sound",
+   "kind": "routine",
+   "file": "sound/sound_effects.asm",
+   "description": "Simple effects on SID voice 1 (voice 3 for the explosion, so a shot does not cut it off). Each effect: 1. sets frequency, envelope (ADSR) and waveform 2. switches the gate bit off and on: the envelope starts again Attack 0 + decay + sustain 0 = the sound fades out by itself; nothing has to be switched off later."
+  },
+  {
+   "id": "fade",
+   "title": "Fade the screen to black",
+   "category": "Effects",
+   "kind": "routine",
+   "file": "effects/fade.asm",
+   "description": "Every colour has a darker partner (table fade_darker: two steps down in the brightness order below). Calling fade_step makes all colours of the colour RAM, border and background darker. After 8 calls everything is black. For fading in, make a table in the other direction."
+  },
+  {
+   "id": "loading_stripes",
+   "title": "Loading stripes in the border",
+   "category": "Effects",
+   "kind": "routine",
+   "file": "effects/loading_stripes.asm",
+   "description": "The flickering colour stripes known from tape loaders and decrunchers: the border colour is changed as fast as possible with random values - the raster beam draws a new colour wherever it is at that moment."
+  },
+  {
+   "id": "open_border",
+   "title": "Open the top and bottom border",
+   "category": "Effects",
+   "kind": "program",
+   "file": "effects/open_border.asm",
+   "description": "The VIC-II switches the border on at line 251 (25 rows) or 247 (24 rows). Switching to 24 rows ($d011 bit 3 = 0) between these two lines - here in line 249 - makes the VIC miss both: the border stays open, and sprites are visible in the upper and lower border. Before line 247 of the next frame the bit must be set back to 25 rows."
+  },
+  {
+   "id": "raster_bar",
+   "title": "Moving raster bar",
+   "category": "Effects",
+   "kind": "program",
+   "file": "effects/raster_bar.asm",
+   "description": "A colour bar that goes up and down through border and background. The colours are changed on every raster line: the program waits for the start of the bar, then waits for each new line ($d012 changes) and writes the next colour to $d020 and $d021."
+  },
+  {
+   "id": "vertical_scroller",
+   "title": "Smooth vertical scroller (credits roll up)",
+   "category": "Effects",
+   "kind": "program",
+   "file": "effects/vertical_scroller.asm",
+   "description": "Text lines move up the screen pixel by pixel - like the end credits of a film. $d011 bits 0-2 move the screen 0-7 pixels down. Counting from 7 down to 0 moves it up; at 0 all rows are copied one row up, a new text line appears at the bottom and the counter starts at 7 again."
+  },
+  {
+   "id": "add_sub16",
+   "title": "16-bit addition and subtraction",
+   "category": "Maths & Tools",
+   "kind": "routine",
+   "file": "maths/add_sub16.asm",
+   "description": "The 6502 calculates with 8 bits. For bigger numbers the low bytes are added first, the carry flag takes the overflow to the high bytes:"
+  },
+  {
+   "id": "compare16",
+   "title": "16-bit comparison",
+   "category": "Maths & Tools",
+   "kind": "routine",
+   "file": "maths/compare16.asm",
+   "description": "Compares two unsigned 16-bit values: the high bytes decide, only if they are equal the low bytes are compared. After the macro the flags are set like after CMP: BCC  a < b          BCS  a >= b BEQ  a = b          BNE  a <> b"
+  },
+  {
+   "id": "divide",
+   "title": "Division 16 / 16 bit (with remainder)",
+   "category": "Maths & Tools",
+   "kind": "routine",
+   "file": "maths/divide.asm",
+   "description": "Long division in binary: the dividend is shifted bit by bit into the remainder; whenever the divisor fits, it is subtracted and the result bit is 1."
+  },
+  {
+   "id": "macros",
+   "title": "Useful ACME macros",
+   "category": "Maths & Tools",
+   "kind": "routine",
+   "file": "maths/macros.asm",
+   "description": "Macros save typing: the code inside is inserted wherever you call the macro, with your parameters. Define them once at the top of your file."
+  },
+  {
+   "id": "memcopy",
+   "title": "Copy and fill memory (any size)",
+   "category": "Maths & Tools",
+   "kind": "routine",
+   "file": "maths/memcopy.asm",
+   "description": "memcopy  copies mc_len bytes from (mc_src) to (mc_dst) memfill  fills mc_len bytes at (mc_dst) with A"
+  },
+  {
+   "id": "multiply",
+   "title": "Multiplication 8 x 8 = 16 bit",
+   "category": "Maths & Tools",
+   "kind": "routine",
+   "file": "maths/multiply.asm",
+   "description": "The 6502 has no multiply instruction. Like written multiplication in school, but in binary: for every 1 bit of the multiplier the multiplicand is added; after each bit everything moves one place."
+  },
+  {
+   "id": "random",
+   "title": "Pseudo random numbers (8-bit and 16-bit LFSR)",
+   "category": "Maths & Tools",
+   "kind": "routine",
+   "file": "maths/random.asm",
+   "description": "A \"linear feedback shift register\": shift the number one bit, and if a 1 falls out, EOR it with a magic constant. Tiny and fast, but it repeats:"
+  },
+  {
+   "id": "tables",
+   "title": "Tables calculated by ACME (sine, row addresses, ...)",
+   "category": "Maths & Tools",
+   "kind": "routine",
+   "file": "maths/tables.asm",
+   "description": "Instead of calculating at run time (slow on a 1 MHz CPU), let ACME calculate tables when the program is assembled. !for repeats a line, sin(), cos(), float(), int() work with real numbers."
+  },
+  {
+   "id": "directory",
+   "title": "Read and print the disk directory",
+   "category": "Disk",
+   "kind": "routine",
+   "file": "disk/directory.asm",
+   "description": "The directory is a file called \"$\". Opened like a BASIC program, it contains one \"line\" per file: link (2 bytes), number of blocks (2 bytes), the text with the name, and a 0 byte at the end. This routine reads it byte by byte (OPEN / CHKIN / CHRIN) and prints it with CHROUT - like LOAD \"$\",8 and LIST, without destroying your program in memory."
+  },
+  {
+   "id": "load_file",
+   "title": "Load a file from disk (KERNAL LOAD)",
+   "category": "Disk",
+   "kind": "routine",
+   "file": "disk/load_file.asm",
+   "description": "Loads a file from drive 8 - like  LOAD \"NAME\",8,1  in BASIC."
+  },
+  {
+   "id": "save_file",
+   "title": "Save memory to disk (KERNAL SAVE)",
+   "category": "Disk",
+   "kind": "routine",
+   "file": "disk/save_file.asm",
+   "description": "Saves a memory range as a PRG file - like a high score table or a level. The first two bytes of the file are the start address, so it can be loaded back with  LOAD \"NAME\",8,1  or the \"Load a file\" snippet."
+  }
+ ]
+}

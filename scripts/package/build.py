@@ -88,6 +88,8 @@ def stage_resources(resdir, platform):
     rmtree(os.path.join(resdir, 'default_app.asar'))
     stage_app(os.path.join(resdir, 'app'))
     shutil.copytree(os.path.join(ROOT, 'examples'), os.path.join(resdir, 'examples'))
+    shutil.copytree(os.path.join(ROOT, 'snippets'), os.path.join(resdir, 'snippets'),
+                    ignore=shutil.ignore_patterns('_test_*', '_unit_*', '_w_*'))
     tools = os.path.join(resdir, 'tools')
     shutil.copytree(os.path.join(ROOT, 'prebuilt', platform), tools)
     for f in os.listdir(tools):

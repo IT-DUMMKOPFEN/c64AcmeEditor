@@ -38,5 +38,7 @@
   { "file": "19_open_borders.asm", "title": "Open Top and Bottom Border", "level": "Intermediate",
     "description": "The classic border trick: switch to 24 rows at line 249 and sprites become visible in the upper and lower border." },
   { "file": "20_bitmap_plot.asm", "title": "Hires Bitmap Plot", "level": "Intermediate",
-    "description": "320 x 200 bitmap mode, a fast plot routine with tables, a coordinate system and two function curves drawn pixel by pixel." }
+    "description": "320 x 200 bitmap mode, a fast plot routine with tables, a coordinate system and two function curves drawn pixel by pixel." },
+  { "file": "21_intro_template.asm", "title": "Intro Template (picture, music, border scroller)", "level": "Intermediate",
+    "description": "A complete intro to start your own: Koala picture, SID music and a sprite scroller with the normal C64 font in the opened lower border." }
 ]

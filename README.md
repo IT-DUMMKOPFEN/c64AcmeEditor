@@ -1,4 +1,4 @@
-# C64 ACME EDITOR 0.2b
+# C64 ACME EDITOR 0.3b
 
 An editor for writing Commodore 64 machine language with the **ACME** cross
 assembler - with live checking, a memory map, support for the **VICE**
@@ -53,13 +53,24 @@ by **IT-Dummköpfe** - MIT license
   registers, KERNAL routines, PETSCII and screen codes, colours, raster
   interrupts, sprites, scrolling, SID music, bitmaps, speed tricks, Exomizer
   and VICE. Ctrl+F1 opens the page for the word at the cursor.
-- **20 examples**, all fully commented and runnable:
+- **Snippet library** (Ctrl+I): 56 documented code snippets, searchable -
+  BASIC start, raster IRQs (with/without KERNAL, chains, stable double IRQ,
+  CIA timer), joystick and keyboard, text output, simple and smooth
+  scrollers, colour cycling, own charsets, pictures (Koala, Art Studio,
+  Advanced Art Studio, Doodle, raw data), bitmap plot, VIC banks, sprites,
+  SID music, sound effects, the intro "drone" sound, raster bars, open
+  borders, fades, maths (16-bit, multiply, divide, random), memory copy,
+  macros, disk load/save/directory. Routines are inserted at the cursor,
+  programs open as a new file.
+- **21 examples**, all fully commented and runnable:
   Hello World - Raster Bars (border + background) - Soft Scroller - Sprite
   Animation - Sprite Scroller - Simple Plasma - Complex Plasma - Rotating 3D
   Square - SID Player 1x/2x/3x with text - Koala Picture Viewer (.kla) -
   Raster Split - Parallax Starfield - DYCP Scroller - Character Fire - Colour
   Cycling Text - Joystick Controlled Sprite - Random Maze (8/16-bit LFSR) -
-  Key Codes in Hex/Dec/Bin - Open Top/Bottom Border - Hires Bitmap Plot.
+  Key Codes in Hex/Dec/Bin - Open Top/Bottom Border - Hires Bitmap Plot -
+  Intro Template (Koala picture, SID music, sprite scroller in the open
+  border).
   The ideas for examples 11-20 come from
   [Codebase64](https://codebase64.net/doku.php?id=start); every example links
   the matching articles.
@@ -72,8 +83,8 @@ Ready-to-use builds are made with `scripts/package/build.py` (see
 
 | System | File | Included tools |
 |---|---|---|
-| Windows 10/11 (x64) | `C64-ACME-EDITOR-0.2b-Windows-Setup.exe` or `...-win-x64.zip` (portable) | ACME, Exomizer, sidreloc |
-| macOS (Apple Silicon) | `C64-ACME-EDITOR-0.2b-macOS-AppleSilicon.zip` (unzip, move the app to *Applications*) | ACME, Exomizer, sidreloc |
+| Windows 10/11 (x64) | `C64-ACME-EDITOR-0.3b-Windows-Setup.exe` or `...-win-x64.zip` (portable) | ACME, Exomizer, sidreloc |
+| macOS (Apple Silicon) | `C64-ACME-EDITOR-0.3b-macOS-AppleSilicon.zip` (unzip, move the app to *Applications*) | ACME, Exomizer, sidreloc |
 | Linux (x64) | `...-linux-x86_64.AppImage` or `...-linux-amd64.deb` | ACME, Exomizer, sidreloc |
 
 **VICE is not included** (since 0.2b). Install it yourself to run your
@@ -118,7 +129,7 @@ VICE, which you install once.
 4. **Shift+F7** runs the sanity check, **Ctrl+Shift+P** saves a PRG (optionally
    packed with Exomizer).
 
-Important shortcuts: F5 run, Shift+F5 pack & run, F7 check with ACME,
+Important shortcuts: F5 run, Shift+F5 pack & run, F7 check with ACME, Ctrl+I snippets,
 Ctrl+B build PRG next to the source, Ctrl+K number converter, Ctrl+M memory
 map, Ctrl+T day/night, F1 help. The complete list is in *Help > Keyboard
 Shortcuts*.
@@ -172,6 +183,8 @@ src/renderer/      user interface
   js/opcodes.js    6502/6510 instruction set data
   js/help-*.js     help center
 examples/          example programs (+ demo tune and demo picture they use)
+snippets/          snippet library (index.json, one folder per category,
+                   data/ = sample pictures and tune)
 prebuilt/          ready-built ACME, Exomizer, sidreloc for mac-arm64,
                    win-x64 and linux-x64 (taken from the 0.2b builds)
 scripts/           download/build scripts for ACME, Exomizer, sidreloc,

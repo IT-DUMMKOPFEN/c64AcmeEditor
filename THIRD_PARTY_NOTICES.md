@@ -21,3 +21,5 @@ The example music (`examples/music/demo_tune.sid`) and the example picture
 (`examples/gfx/picture.kla`) were made for this project (see
 `scripts/music/demo_tune_src.asm` and `scripts/make_koala.py`) and are MIT
 licensed like the editor.
+The sample pictures in `snippets/data/` are converted from that picture
+(`scripts/make_snippet_data.py`) and are MIT licensed as well.

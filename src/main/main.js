@@ -11,7 +11,7 @@ const { Tools } = require('./tools.js');
 const Asm = require('../renderer/js/assembler.js');
 
 const APP_NAME = 'C64 ACME EDITOR';
-const APP_VERSION = '0.2b';
+const APP_VERSION = '0.3b';
 const APP_AUTHOR = 'IT-Dummköpfe';
 
 app.setName(APP_NAME);
@@ -26,6 +26,7 @@ function resourcePath(...p) {
   return app.isPackaged ? path.join(process.resourcesPath, ...p) : path.join(__dirname, '..', '..', ...p);
 }
 const EXAMPLES_DIR = () => resourcePath('examples');
+const SNIPPETS_DIR = () => resourcePath('snippets');
 
 // ------------------------------------------------------------------ window
 function createWindow() {
@@ -100,7 +101,8 @@ function exampleMenu() {
   let list = [];
   try { list = JSON.parse(fs.readFileSync(path.join(EXAMPLES_DIR(), 'index.json'), 'utf8')); } catch (e) { /* ignore */ }
   const items = list.map(ex => ({ label: ex.title + '  (' + ex.level + ')', click: () => send('example:open', ex.file) }));
-  items.push({ type: 'separator' }, { label: 'Example Gallery…', accelerator: 'CmdOrCtrl+Shift+E', click: () => send('examples:gallery') });
+  items.push({ type: 'separator' }, { label: 'Example Gallery…', accelerator: 'CmdOrCtrl+Shift+E', click: () => send('examples:gallery') },
+    { label: 'Snippet Library…', click: () => send('snippets:open') });
   return items;
 }
 
@@ -171,6 +173,8 @@ function buildMenu() {
         { label: 'Tidy Up Columns (labels / code / comments)', accelerator: 'CmdOrCtrl+Shift+F', click: () => send('edit:tidy') },
         { type: 'separator' },
         { label: 'Insert', submenu: [
+          { label: 'Snippet Library…', accelerator: 'CmdOrCtrl+I', click: () => send('snippets:open') },
+          { type: 'separator' },
           { label: 'BASIC Start Line (10 SYS 2061)', click: () => send('insert:basic') },
           { label: 'Raster IRQ Skeleton', click: () => send('insert:irq') },
           { label: 'SID Music Include…', click: () => send('insert:sid') },
@@ -369,6 +373,12 @@ function registerIpc() {
     let list = [];
     try { list = JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8')); } catch (err) { /* ignore */ }
     return { dir, list };
+  });
+  ipcMain.handle('snippets:list', () => {
+    const dir = SNIPPETS_DIR();
+    let index = { categories: [], snippets: [] };
+    try { index = JSON.parse(fs.readFileSync(path.join(dir, 'index.json'), 'utf8')); } catch (err) { /* ignore */ }
+    return { dir, index };
   });
   ipcMain.handle('shell:openExternal', (e, url) => { if (/^https?:\/\//.test(url)) shell.openExternal(url); });
   ipcMain.handle('shell:showItem', (e, file) => shell.showItemInFolder(file));

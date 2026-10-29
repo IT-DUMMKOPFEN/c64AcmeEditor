@@ -52,6 +52,44 @@ for (const f of files) {
   }
 }
 
+console.log('\n# snippets');
+const SN = path.join(__dirname, '..', 'snippets');
+const snIndex = JSON.parse(fs.readFileSync(path.join(SN, 'index.json'), 'utf8'));
+const listed = new Set(snIndex.snippets.map(s => s.file));
+for (const d of fs.readdirSync(SN)) {
+  const dd = path.join(SN, d);
+  if (!fs.statSync(dd).isDirectory() || d === 'data') continue;
+  for (const f of fs.readdirSync(dd)) if (f.endsWith('.asm')) ok(listed.has(d + '/' + f), `snippets/${d}/${f}: listed in index.json`);
+}
+for (const sn of snIndex.snippets) {
+  if (sn.kind === 'example') { ok(fs.existsSync(path.join(EX, sn.file)), 'snippet ' + sn.id + ': example exists'); continue; }
+  const src = fs.readFileSync(path.join(SN, sn.file), 'utf8');
+  // routines are tested at $1000 (as if inserted into a program), programs as they are
+  const text = sn.kind === 'routine' ? '        * = $1000\n' + src : src;
+  const tmp = path.join(SN, '_test_' + sn.id + '.asm');           // in the snippet root: data/... resolves
+  const r = model(tmp, text);
+  ok(!r.diags.some(d => d.severity === 'error'), 'snippet ' + sn.file + ': no errors in the model', r.diags.map(d => d.message).join('; '));
+  if (sn.kind === 'program') {
+    const z = Z.analyze(r, text, tmp);
+    ok(!z.some(d => d.severity !== 'info'), 'snippet ' + sn.file + ': sanity check without warnings', z.filter(d => d.severity !== 'info').map(d => d.message).join('; '));
+  }
+  if (haveAcme) {
+    fs.writeFileSync(tmp, text);
+    const out = path.join(os.tmpdir(), 'c64ae_sn_' + sn.id + '.prg');
+    const res = cp.spawnSync(ACME, ['-v2', '-f', 'cbm', '-o', out, path.basename(tmp)], { cwd: SN, encoding: 'utf8' });
+    fs.unlinkSync(tmp);
+    const t = (res.stdout || '') + (res.stderr || '');
+    ok(res.status === 0 && !/Warning/.test(t), 'snippet ' + sn.file + ': ACME assembles it without warnings', t.split('\n').filter(l => /Error|Warning/.test(l)).join(' | '));
+    const segs = [...t.matchAll(/Segment size is .*?\(0x([0-9a-f]+) - 0x([0-9a-f]+) exclusive\)/g)].map(m => ({ start: parseInt(m[1], 16), end: parseInt(m[2], 16) }));
+    ok(merge(segs) === merge(r.ranges), 'snippet ' + sn.file + ': memory layout matches ACME', 'acme=' + merge(segs) + ' model=' + merge(r.ranges));
+  }
+}
+
+if (haveAcme) {
+  console.log('\n# snippet unit tests');
+  try { require('./snippet-units.js')(ACME, ok); } catch (e) { ok(false, 'snippet unit tests', e.stack); }
+}
+
 console.log('\n# error detection');
 const cases = [
   ['sta #4', /does not support immediate/],

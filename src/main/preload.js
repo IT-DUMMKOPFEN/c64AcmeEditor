@@ -38,6 +38,7 @@ contextBridge.exposeInMainWorld('api', {
   viceArgs: (prg) => ipcRenderer.invoke('vice:args', prg),
 
   examples: () => ipcRenderer.invoke('examples:list'),
+  snippets: () => ipcRenderer.invoke('snippets:list'),
   openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
   showItem: (p) => ipcRenderer.invoke('shell:showItem', p),
 

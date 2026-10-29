@@ -221,6 +221,7 @@
 <h2>Where to start</h2>
 <ul>
 <li>Open <b>Examples &gt; Hello World</b> and press F5.</li>
+<li>Need a joystick routine, a raster interrupt or a scroller? Look into the <a data-page="snippets">Snippet library</a> (Ctrl+I).</li>
 <li>Read <a data-page="first-program">Your first program</a> for a step by step introduction.</li>
 <li>Place the cursor on any mnemonic (e.g. <code>lda</code>) and press <b>Ctrl+F1</b> for its reference page. Hover over numbers to see them in hex, decimal and binary.</li>
 </ul>
@@ -229,7 +230,7 @@
 
   pages.push(p('examples', 'Example programs', `
 <h1>Example programs</h1>
-<p>The editor comes with 20 fully commented example programs (<b>Examples</b> menu or Ctrl+Shift+E). Every example creates a runnable PRG: open it, press <b>F5</b>, read the comments, change something and run it again. Most examples end with SPACE.</p>
+<p>The editor comes with 21 fully commented example programs (<b>Examples</b> menu or Ctrl+Shift+E). Every example creates a runnable PRG: open it, press <b>F5</b>, read the comments, change something and run it again. Most examples end with SPACE.</p>
 <p>The ideas for the examples 11-20 were picked from <a href="https://codebase64.net/doku.php?id=start">Codebase64</a>; the header of every example links the matching articles.</p>
 <table>
 <tr><th>#</th><th>Example</th><th>What you learn</th><th>Codebase64</th></tr>
@@ -253,8 +254,40 @@
 <tr><td class="mono">18</td><td>Key Codes</td><td>GETIN, hex / BCD decimal / binary output, PETSCII to screen code</td><td><a href="https://codebase64.net/doku.php?id=base:hexadecimal_to_decimal_conversion">hexadecimal to decimal conversion</a>, <a href="https://codebase64.net/doku.php?id=base:petscii_to_screencode">petscii to screencode</a></td></tr>
 <tr><td class="mono">19</td><td>Open Borders</td><td>the RSEL border trick, sprites in the border</td><td><a href="https://codebase64.net/doku.php?id=vic:opening_the_top_bottom_borders">opening the top bottom borders</a></td></tr>
 <tr><td class="mono">20</td><td>Hires Bitmap Plot</td><td>bitmap mode, fast plot with tables, colour clash</td><td><a href="https://codebase64.net/doku.php?id=base:dots_and_plots">dots and plots</a></td></tr>
+<tr><td class="mono">21</td><td>Intro Template</td><td>Koala picture + SID music + sprite scroller in the open border: planning the memory of a whole program</td><td><a href="https://codebase64.net/doku.php?id=vic:opening_the_top_bottom_borders">opening the top bottom borders</a></td></tr>
 </table>
 <div class="note">An example opens as a new, unsaved copy, so the original stays unchanged. When you save it, the files it includes (music, pictures) are copied next to your file.</div>
+`));
+
+  pages.push(p('snippets', 'Snippet library', `
+<h1>Snippet library</h1>
+<p>The snippet library (<b>Snippets</b> in the toolbar, <b>Edit &gt; Insert &gt; Snippet Library</b> or <b>Ctrl+I</b>) contains documented code for everyday tasks: BASIC start, interrupts, joystick and keyboard, text output and scrollers, pictures in many formats, sprites, sound (including the intro "drone"), effects, maths and disk access. Every snippet assembles with ACME and explains in its header what it does and how to use it.</p>
+<h2>Two kinds of snippets</h2>
+<ul>
+<li><b>Routines</b> are inserted at the cursor (at an empty line, otherwise below the current line). They have no BASIC start line - you call them from your program with JSR or use their macros. In an empty file a BASIC start line is inserted first.</li>
+<li><b>Programs</b> are complete and open as a new file: press F5 and they run. Their picture and music files (folder <code>data</code>) are found automatically and copied next to your file when you save it.</li>
+</ul>
+<p>Search with several words, e.g. <i>sprite joystick</i> or <i>irq kernal</i>. Arrow keys move through the list, Enter inserts or opens the snippet, a double click does the same.</p>
+<h2>Things to know</h2>
+<ul>
+<li>Constants at the top of a snippet (colours, raster lines, addresses) are meant to be changed.</li>
+<li>Defining the same constant twice with the same value is fine in ACME (e.g. <code>SCREEN = $0400</code> in two snippets); different values are an error.</li>
+<li>Routines use zero page addresses <code>$fb-$fe</code> (free for your programs, like in most examples). If you combine snippets, check that they do not use the same addresses at the same time.</li>
+</ul>
+<h2>Contents</h2>
+<table>
+<tr><td><b>Templates</b></td><td>Intro: Koala picture + SID music + sprite scroller in the open border <i>(template)</i></td></tr>
+<tr><td><b>Basics</b></td><td>BASIC start line + black screen <i>(program)</i><br>Fast clear screen (with a colour)<br>Clean return to BASIC<br>Switch off BASIC and KERNAL ROM (with NMI blocker)<br>Wait for the next frame (raster line)</td></tr>
+<tr><td><b>Interrupts</b></td><td>Several raster IRQs per frame (IRQ chain)<br>Raster IRQ initialisation (with KERNAL)<br>Raster IRQ without KERNAL (\$fffe)<br>Stable raster IRQ (double IRQ)<br>Timer interrupt with any frequency (CIA 1)</td></tr>
+<tr><td><b>Input</b></td><td>Read the joystick (port 2 and port 1)<br>Read keys with the KERNAL (GETIN)<br>Check a key directly in the keyboard matrix (no KERNAL)<br>"Press SPACE to continue"</td></tr>
+<tr><td><b>Text</b></td><td>Own character set (copy the ROM font and change characters)<br>Colour flashing / colour cycling of a text row<br>Print text at a screen position (direct, with colour)<br>Print text with the KERNAL (CHROUT + PLOT)<br>Print numbers: hex, decimal (8 + 16 bit), binary<br>Simple text scroller (bottom row, character by character) <i>(program)</i><br>Smooth scroller (bottom row, pixel by pixel) <i>(program)</i></td></tr>
+<tr><td><b>Graphics</b></td><td>Bitmap mode on / off and clear the bitmap<br>Plot a pixel (hires bitmap, 320 x 200)<br>Show an Art Studio picture (.art / .aas, hires) <i>(program)</i><br>Show a Doodle picture (.dd, hires) <i>(program)</i><br>Show a Koala Painter picture (.kla / .koa) <i>(program)</i><br>Show an Advanced Art Studio picture (.ocp / .mpic, multicolour) <i>(program)</i><br>Show a picture from separate raw files (bitmap, screen, colours) <i>(program)</i><br>VIC bank and memory setup (macro)</td></tr>
+<tr><td><b>Sprites</b></td><td>Sprite animation (switch the sprite pointer) <i>(program)</i><br>Sprite collisions<br>Move a sprite with the joystick (port 2) <i>(program)</i><br>Sprite settings: multicolour, expand, priority<br>Show a sprite (position, colour, pointer) <i>(program)</i><br>Sprite X position 0-511 (the 9th bit in \$d010)</td></tr>
+<tr><td><b>Sound</b></td><td>Intro drone ("Brummen" instead of music) <i>(program)</i><br>Play SID music in a raster interrupt <i>(program)</i><br>Random numbers from the SID (noise of voice 3)<br>Reset / silence the SID<br>Sound effects: shot, explosion, beep</td></tr>
+<tr><td><b>Effects</b></td><td>Fade the screen to black<br>Loading stripes in the border<br>Open the top and bottom border <i>(program)</i><br>Moving raster bar <i>(program)</i><br>Smooth vertical scroller (credits roll up) <i>(program)</i></td></tr>
+<tr><td><b>Maths &amp; Tools</b></td><td>16-bit addition and subtraction<br>16-bit comparison<br>Division 16 / 16 bit (with remainder)<br>Useful ACME macros<br>Copy and fill memory (any size)<br>Multiplication 8 x 8 = 16 bit<br>Pseudo random numbers (8-bit and 16-bit LFSR)<br>Tables calculated by ACME (sine, row addresses, ...)</td></tr>
+<tr><td><b>Disk</b></td><td>Read and print the disk directory<br>Load a file from disk (KERNAL LOAD)<br>Save memory to disk (KERNAL SAVE)</td></tr>
+</table>
 `));
 
   pages.push(p('shortcuts', 'Keyboard shortcuts', `
@@ -268,6 +301,8 @@
 <tr><td>Shift+F7</td><td>Sanity check (logic analysis)</td></tr>
 <tr><td>Ctrl+B</td><td>Build the PRG next to the source</td></tr>
 <tr><td>Ctrl+Shift+P</td><td>Save as PRG (with Exomizer option)</td></tr>
+<tr><td>Ctrl+I</td><td>Snippet library</td></tr>
+<tr><td>Ctrl+Shift+E</td><td>Example gallery</td></tr>
 <tr><td>Ctrl+N / Ctrl+O / Ctrl+S</td><td>New / open / save</td></tr>
 <tr><td>Ctrl+Shift+S</td><td>Save as</td></tr>
 <tr><td>Ctrl+W</td><td>Close tab</td></tr>
@@ -951,7 +986,7 @@ ${table(['Address', 'Name', 'Description'], ROUTINES)}
 
   window.HelpContent = {
     groups: [
-      { title: 'Getting started', ids: ['welcome', 'first-program', 'examples', 'shortcuts'] },
+      { title: 'Getting started', ids: ['welcome', 'first-program', 'examples', 'snippets', 'shortcuts'] },
       { title: '6502 / 6510 CPU', ids: ['cpu', 'addrmodes', 'opcodes', 'illegal', 'opmatrix', 'numbers', 'branches', 'maths'] },
       { title: 'ACME assembler', ids: ['acme-intro', 'acme-po', 'acme-expr', 'acme-macros', 'acme-errors', 'acme-cli'] },
       { title: 'C64 hardware', ids: ['memmap', 'zeropage', 'vic', 'sprites', 'raster', 'sid', 'cia', 'colors', 'petscii', 'kernal'] },
